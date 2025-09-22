@@ -1,9 +1,10 @@
 # HTI NewDash
 
-Live CRM dashboard for HUBZone Technology Initiative. The project now ships with:
+Modernized CRM cockpit for HUBZone Technology Initiative. The stack now ships with:
 
-- **Static dashboard UI** (in this folder) optimized for Vercel/static hosting.
-- **Node/Express API** under `server/` with a SQLite store and ingestion scripts for Reddit + Data.gov.
+- **HTI Dashboard (static)** &mdash; the SPA in this directory, deployable to any static host.
+- **Express/LowDB API** under `server/` with ingestion jobs (Reddit, Data.gov, GSA Auctions, SAM.gov) plus connector tooling.
+- **Offline-ready UX** with a service worker, manifest, and responsive styles inspired by hubzonetech.org.
 
 ## Getting Started
 
@@ -12,11 +13,11 @@ Live CRM dashboard for HUBZone Technology Initiative. The project now ships with
 ```bash
 cd server
 npm install
-npm run seed        # optional: load sample data
-npm run dev         # starts API on http://localhost:4000
+npm run seed        # optional: reload sample data with dedup-ready entities
+npm run dev         # http://localhost:4000
 ```
 
-Environment variables (create `server/.env`):
+Create `server/.env` (values shown are safe defaults):
 
 ```
 PORT=4000
@@ -25,76 +26,131 @@ HTI_REDDIT_SUBS=sysadmin,ITManagers
 HTI_DATAGOV_QUERY="computer donation"
 ```
 
+Additional keys (optional) unlock richer ingest feeds:
+
+```
+HTI_GSA_API_KEY=your_gsa_key
+HTI_GSA_STATES=NC,SC,VA
+HTI_SAM_API_KEY=your_sam_api_key
+HTI_SAM_KEYWORDS="technology donation"
+HTI_SAM_AGENCY="DEPT OF DEFENSE"
+```
+
 ### 2. Serve the frontend
 
-Use any static server from the project root (Vercel, `npx serve`, etc.). The UI auto-detects the API at `/api` and falls back to local data if the API is offline.
+Any static server will work. The UI auto-detects `/api`; override with `localStorage.setItem('hti-api-base', 'https://api.example.com')` if hosting separately.
 
 ```bash
 npx serve .
 ```
 
-When hosting both together, reverse-proxy `/api` to the Express server.
+The service worker precaches core assets (`index.html`, `style.css`, `app.js`, icons) so the dashboard keeps working offline.
 
-## Data Ingestion
+## Feature Highlights
 
-The API includes drip crawlers you can schedule (cron, GitHub Actions, etc.):
+- **Unified CRM Data Hub** – contacts, households, and companies roll up with dedupe intelligence and merge actions.
+- **Persona Intelligence** – every lead is auto-bucketed (Tech Refresh Donor, Government Surplus, Healthcare System, etc.) for filters, dashboards, and routing.
+- **Multi-pipeline kanban** – drag-style lanes (via click actions) for donation, grants, or partnership pipelines with probability-weighted forecasts.
+- **Automation Studio** – build stage-change automations that schedule follow-ups, log activities, and create task queues.
+- **Field Ops Map** – Leaflet map for routing pickups, with weighted markers and quick route summaries.
+- **Operations Console** – monitor ingestion jobs, register connectors, manage API keys, and grab embeddable intake forms.
+- **PWA polish** – installable manifest, offline caching, and responsive layouts tuned for hubzonetech.org branding.
+
+## Data Ingestion & Connectors
+
+### Scheduled jobs (cron-friendly)
 
 ```bash
-# reddit.com/r/sysadmin and r/ITManagers
-npm run sync:reddit
-
-# catalog.data.gov search (configurable query)
-npm run sync:datagov
-
-# GSA surplus auctions feed
-npm run sync:gsa
-
-# SAM.gov opportunities (requires HTI_SAM_API_KEY)
-npm run sync:sam
+npm run sync:reddit   # r/sysadmin, r/ITManagers
+npm run sync:datagov  # catalog.data.gov
+npm run sync:gsa      # GSA surplus auctions
+npm run sync:sam      # SAM.gov opportunities (requires HTI_SAM_API_KEY)
 ```
 
-Each script is polite (throttled, user-agent tagged) and stores cursors so they can run on a schedule without re-ingesting older items.
+Runs are cursor-aware, lightly throttled, and log to the ingestion console with audit entries.
 
-Suggested `.env` additions when you expand ingest sources:
+### Connector console
 
-```
-HTI_GSA_API_KEY=DEMO_KEY              # request your own from gsa.gov for higher quotas
-HTI_GSA_PER_PAGE=20
-HTI_GSA_STATES=NC,SC,VA
-HTI_SAM_API_KEY=your_sam_api_key      # https://sam.gov/content/api
-HTI_SAM_KEYWORDS="technology donation"
-HTI_SAM_AGENCY="DEPT OF DEFENSE"
-HTI_SAM_MAX_RESULTS=25
-```
+- Register Gmail/Outlook/CSV/ICS connectors for drip ingestion.
+- Paste CSV or ICS payloads directly in the UI to drip interactions; records feed the Data Hub timeline instantly.
+- API Keys page issues scoped tokens for partner intake forms (embed snippet available per form).
 
-If a key is missing the corresponding ingest script exits gracefully so you can enable feeds incrementally.
+## API Surface
 
-## API Endpoints
-
-- `GET /healthz` – health check.
-- `GET /api/bootstrap` – bulk payload (leads, corporate targets, milestones, activities, dashboard summary).
-- `GET /api/dashboard` – aggregated metrics only.
-- `GET /api/leads?status=&source=&priority=&search=`
+### Core
+- `GET /api/bootstrap`
+- `GET /api/dashboard`
+- `GET /api/leads`
 - `POST /api/leads`
 - `PATCH /api/leads/:id`
 - `DELETE /api/leads/:id`
 - `POST /api/leads/:id/complete-follow-up`
-- `GET /api/corporate-targets?priority=`
+- `GET /api/corporate-targets`
 - `POST /api/corporate-targets`
 - `GET /api/milestones`
-- `GET /api/activities?limit=`
+- `GET /api/activities`
+
+### Pipelines & Automations
+- `GET /api/pipelines`
+- `POST /api/pipelines`
+- `PATCH /api/pipelines/:id`
+- `POST /api/pipelines/:id/stages`
+- `PATCH /api/pipelines/:id/stages/:stageId`
+- `POST /api/pipelines/:id/assign`
+- `GET /api/pipelines/:id/board`
+- `GET /api/automations`
+- `POST /api/automations`
+- `PATCH /api/automations/:id`
+- `DELETE /api/automations/:id`
+- `GET /api/automations/:id/executions`
+- `GET /api/tasks`
+- `PATCH /api/tasks/:id/complete`
+
+### CRM Data Hub
+- `GET /api/entities`
+- `GET /api/entities/dedupe`
+- `POST /api/entities/:primaryId/merge`
+- `GET /api/interactions`
+
+### Operations & Connectors
+- `GET /api/admin/ingestion`
+- `PATCH /api/admin/ingestion/:id`
+- `POST /api/admin/ingestion/:id/run`
+- `GET /api/connectors`
+- `POST /api/connectors`
+- `PATCH /api/connectors/:id`
+- `POST /api/connectors/import/csv`
+- `POST /api/connectors/import/ics`
+
+### Forms & Security
+- `GET /api/forms`
+- `POST /api/forms`
+- `PATCH /api/forms/:id`
+- `GET /api/forms/:id/embed`
+- `GET /api/security/users`
+- `GET /api/security/api-keys`
+- `POST /api/security/api-keys`
+- `DELETE /api/security/api-keys/:id`
+
+### Public Intake
+- `GET /external/forms/:slug.html`
+- `POST /external/intake/:slug` (requires API key)
+
+All routes respect role-based permissions; the default `hti-admin` owner seeded in LowDB has `*` scope.
 
 ## Deploying
 
-1. Deploy `server/` to a Node host (Render, Fly.io, Railway, Vercel serverless). Persist the `HTI_DB_PATH` storage.
-2. Set environment variables above (and add API keys when you obtain them, e.g. SAM.gov).
-3. Point the frontend (`index.html`) at the API domain by setting `window.__HTI_API_BASE__` before loading `app.js` if it’s not under the same origin.
-4. Schedule ingestion scripts via cron/worker.
-
-Tip: you can persist a custom API base in the browser console with `localStorage.setItem('hti-api-base', 'https://api.example.com')` and reload.
+1. Deploy `server/` (Render/Fly.io/Railway). Persist `HTI_DB_PATH` or swap to Postgres.
+2. Configure env vars and secrets (Reddit, Data.gov, GSA, SAM.gov, etc.).
+3. Serve the static dashboard (Vercel/Netlify/S3). If API lives elsewhere, set `window.__HTI_API_BASE__` before loading `app.js` or persist via localStorage.
+4. Schedule ingestion jobs (cron, GitHub Actions, or a managed worker).
+5. Optional: expose `/external/forms/:slug` on the API domain for partner embed usage.
 
 ## Extending
 
-- Add auth (Supabase, Clerk) by protecting the API routes.
-- Swap SQLite for Postgres by changing `HTI_DB_PATH` to a Postgres connection string and using `better-sqlite3` alternatives (or adopt Prisma).
-- Enrich data with official APIs (SAM.gov, Crunchbase, Clearbit) once you have API keys.
+- **Auth & multi-tenancy**: front a proxy (Clerk, Supabase) and map workspaces to JWT claims.
+- **Deeper enrichment**: plug SAM.gov, Crunchbase, Clearbit, etc., into the connector system for automated enrichment.
+- **Analytics**: ship metrics to Metabase/Redash or embed Superset charts via the new operations console.
+- **Mobile**: wrap the PWA in Capacitor for kiosk/field deployment.
+
+Enjoy the new HubZone-flavored cockpit! If you uncover issues, open the inspector & look for toasts—everything now reports errors unobtrusively.

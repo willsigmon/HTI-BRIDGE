@@ -19,7 +19,25 @@ const defaultData = {
   grantMilestones: [],
   activities: [],
   syncLog: [],
-  ingestCursor: {}
+  ingestCursor: {},
+  contacts: [],
+  organizations: [],
+  households: [],
+  pipelines: [],
+  pipelineStages: [],
+  leadAssignments: [],
+  automations: [],
+  automationExecutions: [],
+  workspaces: [],
+  users: [],
+  auditLog: [],
+  ingestionJobs: [],
+  apiKeys: [],
+  intakeForms: [],
+  connectors: [],
+  interactionEvents: [],
+  calendarEvents: [],
+  tasks: []
 };
 
 function initDatabase() {

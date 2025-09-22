@@ -18,6 +18,24 @@ const CLOSED_STATUSES = new Set([
   'Invalid'
 ]);
 const CORPORATE_PRIORITY_RANK = { High: 3, Medium: 2, Low: 1 };
+const PERSONA_BUCKETS = [
+  'Corporate IT Partner',
+  'Tech Refresh Donor',
+  'Government Surplus',
+  'Government Procurement',
+  'Healthcare System',
+  'Education Partner',
+  'Logistics Hotshot'
+];
+const PERSONA_TAG_DEFINITIONS = {
+  'Corporate IT Partner': ['corporate', 'it'],
+  'Tech Refresh Donor': ['technology', 'refresh'],
+  'Government Surplus': ['public-sector', 'surplus'],
+  'Government Procurement': ['public-sector', 'procurement'],
+  'Healthcare System': ['healthcare'],
+  'Education Partner': ['education', 'community'],
+  'Logistics Hotshot': ['logistics', 'fast-turn']
+};
 const UPCOMING_THRESHOLD_DAYS = 14;
 
 const API_BASE_URL = window.__HTI_API_BASE__ || '/api';
@@ -86,7 +104,9 @@ const htiData = {
       notes: 'Corporate refresh cycle, 3-year-old ThinkPads, NIST data wipe required.',
       timeline: 'Immediate',
       followUpDate: '2025-09-23',
-      potentialValue: 'High'
+      potentialValue: 'High',
+      persona: 'Tech Refresh Donor',
+      personaTags: ['technology', 'refresh', 'urgent', 'persona:tech-refresh-donor']
     },
     {
       id: 'L002',
@@ -103,7 +123,9 @@ const htiData = {
       notes: 'Annual refresh cycle, HIPAA compliant destruction needed.',
       timeline: 'Q4 2025',
       followUpDate: '2025-09-25',
-      potentialValue: 'High'
+      potentialValue: 'High',
+      persona: 'Healthcare System',
+      personaTags: ['healthcare', 'persona:healthcare-system']
     },
     {
       id: 'L003',
@@ -120,7 +142,9 @@ const htiData = {
       notes: 'Office consolidation, immediate pickup needed.',
       timeline: 'Urgent',
       followUpDate: '2025-09-22',
-      potentialValue: 'Medium-High'
+      potentialValue: 'Medium-High',
+      persona: 'Logistics Hotshot',
+      personaTags: ['logistics', 'urgent', 'persona:logistics-hotshot']
     }
   ],
   grantMilestones: [
@@ -171,7 +195,12 @@ const htiData = {
   ],
   analytics: {
     baselineActiveLead: 3,
-    baselineEquipment: 425
+    baselineEquipment: 425,
+    personaBreakdown: {
+      'Tech Refresh Donor': 1,
+      'Healthcare System': 1,
+      'Logistics Hotshot': 1
+    }
   }
 };
 
@@ -179,6 +208,7 @@ const filters = {
   status: '',
   source: '',
   priority: '',
+  persona: '',
   search: '',
   sort: 'priority',
   corporatePriority: 'all'
@@ -193,6 +223,16 @@ let openModalCount = 0;
 let storageAvailable = true;
 let topLeadId = null;
 let refreshTimer = null;
+let uiState = {
+  selectedPipelineId: null,
+  selectedEntityId: null,
+  selectedAutomationPipelineId: null,
+  selectedAutomationStageId: null,
+  entityQuery: ''
+};
+let mapInstance = null;
+let mapMarkers = [];
+let mapReady = false;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', startApp);
@@ -203,6 +243,7 @@ if (document.readyState === 'loading') {
 async function startApp() {
   await bootstrapData();
   initializeApp();
+  registerServiceWorker();
 }
 
 function initializeApp() {
@@ -211,6 +252,9 @@ function initializeApp() {
   setupCorporateFilters();
   setupThemeToggle();
   bindGlobalHandlers();
+  setupDataHubControls();
+  setupAutomationControls();
+  setupOperationsConsoleControls();
   renderAll();
   updateLastRefreshed();
   setTimeout(updateCharts, 250);
@@ -225,9 +269,14 @@ function initializeApp() {
 }
 
 function renderAll() {
+  populatePersonaFilter();
   renderDashboard();
   renderCorporateTargets();
   renderLeadsTable();
+  renderDataHub();
+  renderAutomationStudio();
+  renderMapView();
+  renderOperationsConsole();
   renderGrantMilestones();
   renderGrantRoadmap();
   updateComplianceHealth();
@@ -261,6 +310,30 @@ async function refreshFromApi() {
   }
 }
 
+async function refreshDedupes() {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest('/entities/dedupe', { method: 'GET' });
+    const payload = await response.json();
+    state.dedupeMatches = payload.duplicates || [];
+    renderDataHub();
+  } catch (error) {
+    console.warn('Unable to refresh dedupe index', error);
+  }
+}
+
+async function refreshInteractions(limit = 150) {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest(`/interactions?limit=${limit}`, { method: 'GET' });
+    const payload = await response.json();
+    state.interactions = Array.isArray(payload) ? payload : payload.interactions || [];
+    renderDataHub();
+  } catch (error) {
+    console.warn('Unable to refresh interactions', error);
+  }
+}
+
 function hydrateStateFromBootstrap(payload = {}) {
   const leadsData = payload.leads ?? [];
   const corporateData = payload.corporateTargets ?? payload.corporate_targets ?? [];
@@ -268,8 +341,22 @@ function hydrateStateFromBootstrap(payload = {}) {
   const activitiesData = payload.activities ?? [];
   const dashboard = payload.dashboard ?? {};
   const syncLog = payload.syncLog ?? payload.sync_log ?? [];
+  const entitiesData = payload.entities ?? [];
+  const pipelinesData = payload.pipelines ?? [];
+  const automationsData = payload.automations ?? [];
+  const tasksData = payload.tasks ?? [];
+  const ingestionJobsData = payload.ingestionJobs ?? [];
+  const connectorsData = payload.connectors ?? [];
+  const formsData = payload.forms ?? [];
+  const apiKeysData = payload.apiKeys ?? [];
+  const auditData = payload.audit ?? [];
+  const analyticsPayload = payload.analytics ?? {};
+  const mapPoints = payload.map?.points ?? payload.mapPoints ?? [];
+  const interactionsData = payload.interactions ?? [];
 
   const totalEquipment = leadsData.reduce((sum, lead) => sum + (lead.estimatedQuantity ?? lead.estimated_quantity ?? 0), 0);
+
+  const existingDedupes = state?.dedupeMatches ?? [];
 
   state = {
     leads: leadsData,
@@ -277,13 +364,58 @@ function hydrateStateFromBootstrap(payload = {}) {
     grantMilestones: milestonesData,
     activities: activitiesData,
     syncLog,
+    entities: entitiesData,
+    pipelines: pipelinesData,
+    automations: automationsData,
+    tasks: tasksData,
+    ingestionJobs: ingestionJobsData,
+    connectors: connectorsData,
+    forms: formsData,
+    apiKeys: apiKeysData,
+    audit: auditData,
+    mapPoints,
+    dedupeMatches: existingDedupes,
+    interactions: interactionsData,
     analytics: {
       baselineActiveLead: dashboard.metrics?.activeLeads ?? dashboard.metrics?.active_leads ?? leadsData.length,
       baselineEquipment: dashboard.metrics?.totalEquipment ?? dashboard.metrics?.total_equipment ?? totalEquipment,
+      forecastEquipment: analyticsPayload.leads?.forecastEquipment ?? 0,
+      avgStageDuration: analyticsPayload.leads?.avgStageDuration ?? 0,
+      pipelineBreakdown: analyticsPayload.pipeline ?? {},
+      personaBreakdown: analyticsPayload.leads?.personaBreakdown || {},
+      topPersona: analyticsPayload.leads?.topPersona || null,
       lastUpdatedAt: new Date().toISOString()
     },
+    serverAnalytics: analyticsPayload,
     dashboard
   };
+
+  state.leads.forEach(assignPersonaMetadata);
+
+  const personaBreakdown = buildPersonaBreakdown(state.leads);
+  state.analytics.personaBreakdown = Object.keys(state.analytics.personaBreakdown || {}).length
+    ? state.analytics.personaBreakdown
+    : personaBreakdown;
+  const topPersonaEntry = getTopPersona(state.analytics.personaBreakdown);
+  state.analytics.topPersona = state.analytics.topPersona || (topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null);
+
+  state.dashboard = state.dashboard || {};
+  state.dashboard.personaBreakdown = dashboard.personaBreakdown || personaBreakdown;
+  state.dashboard.topPersona = dashboard.topPersona || state.analytics.topPersona;
+
+  if (Array.isArray(state.mapPoints) && state.mapPoints.length) {
+    const personaMap = new Map(state.leads.map((lead) => [lead.id, lead.persona]));
+    state.mapPoints = state.mapPoints.map((point) => ({
+      ...point,
+      persona: point.persona || personaMap.get(point.id) || null
+    }));
+  }
+
+  if (!uiState.selectedPipelineId && pipelinesData.length) {
+    uiState.selectedPipelineId = pipelinesData[0].id;
+  }
+
+  populatePersonaFilter();
 }
 
 async function apiRequest(path, options = {}) {
@@ -360,6 +492,18 @@ function setupTabNavigation() {
       tabContents.forEach((content) => {
         content.classList.toggle('tab-content--active', content.id === targetTabId);
       });
+      if (targetTabId === 'map') {
+        setTimeout(renderMapView, 100);
+      }
+      if (targetTabId === 'dataHub') {
+        renderDataHub();
+      }
+      if (targetTabId === 'automation') {
+        renderAutomationStudio();
+      }
+      if (targetTabId === 'admin') {
+        renderOperationsConsole();
+      }
     });
   });
 }
@@ -391,11 +535,47 @@ function setupFilters() {
     });
   }
 
+  const personaFilter = document.getElementById('personaFilter');
+  if (personaFilter) {
+    personaFilter.addEventListener('change', (event) => {
+      filters.persona = event.target.value;
+      renderLeadsTable();
+    });
+  }
+
   if (sortFilter) {
     sortFilter.addEventListener('change', (event) => {
       filters.sort = event.target.value;
       renderLeadsTable();
     });
+  }
+}
+
+function populatePersonaFilter() {
+  const personaFilter = document.getElementById('personaFilter');
+  if (!personaFilter) return;
+
+  const personas = new Set(PERSONA_BUCKETS);
+  (state.leads || []).forEach((lead) => {
+    if (!lead.persona) assignPersonaMetadata(lead);
+    if (lead.persona) personas.add(lead.persona);
+  });
+
+  const personaOptions = Array.from(personas).sort((a, b) => a.localeCompare(b));
+  const previousValue = filters.persona;
+
+  personaFilter.innerHTML = [
+    '<option value="">All Personas</option>',
+    ...personaOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`)
+  ].join('');
+
+  if (previousValue && personaOptions.includes(previousValue)) {
+    personaFilter.value = previousValue;
+  } else {
+    personaFilter.value = '';
+    if (previousValue) {
+      filters.persona = '';
+    }
   }
 }
 
@@ -409,6 +589,57 @@ function setupCorporateFilters() {
       renderCorporateTargets();
     });
   });
+}
+
+function setupDataHubControls() {
+  const search = document.getElementById('dataHubSearch');
+  if (search) {
+    search.addEventListener('input', (event) => {
+      uiState.entityQuery = event.target.value.trim().toLowerCase();
+      renderDataHub();
+    });
+  }
+
+  if (apiAvailable) {
+    refreshDedupes();
+    refreshInteractions(200);
+  }
+}
+
+function setupAutomationControls() {
+  const form = document.getElementById('automationForm');
+  if (form) {
+    form.addEventListener('submit', handleAutomationSubmit);
+  }
+
+  if (apiAvailable) {
+    refreshAutomations();
+    refreshTasks();
+  }
+}
+
+function setupOperationsConsoleControls() {
+  const connectorForm = document.getElementById('connectorForm');
+  if (connectorForm) {
+    connectorForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitConnectorForm();
+    });
+  }
+
+  const apiKeyForm = document.getElementById('apiKeyForm');
+  if (apiKeyForm) {
+    apiKeyForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitApiKeyForm();
+    });
+  }
+
+  if (apiAvailable) {
+    refreshOperationsConsole();
+  } else {
+    renderOperationsConsole();
+  }
 }
 
 function setupThemeToggle() {
@@ -473,12 +704,24 @@ function updateThemeToggleLabel(button, theme) {
 }
 
 function renderDashboard() {
+  state.dashboard = state.dashboard || {};
+  state.dashboard.metrics = state.dashboard.metrics || {};
   const dashboardMetrics = state.dashboard?.metrics || {};
   const grantProgressPercent = state.dashboard?.grantProgressPercent;
 
   const activeLeads = state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status));
   const totalEquipment = dashboardMetrics.totalEquipment ?? state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
   const highPriorityTargets = state.corporateTargets.filter((target) => (target.priority || '').toLowerCase() === 'high');
+  const personaBreakdown = state.dashboard?.personaBreakdown || buildPersonaBreakdown(state.leads);
+  const topPersonaEntry = state.dashboard?.topPersona?.name
+    ? [state.dashboard.topPersona.name, state.dashboard.topPersona.count ?? personaBreakdown[state.dashboard.topPersona.name] ?? 0]
+    : getTopPersona(personaBreakdown);
+  const topPersonaName = topPersonaEntry ? topPersonaEntry[0] : null;
+
+  state.dashboard.personaBreakdown = personaBreakdown;
+  state.dashboard.topPersona = topPersonaEntry
+    ? { name: topPersonaEntry[0], count: topPersonaEntry[1] }
+    : null;
 
   const activeLeadEl = document.getElementById('activeLead');
   const equipmentPipelineEl = document.getElementById('equipmentPipeline');
@@ -489,6 +732,7 @@ function renderDashboard() {
   const grantProgressBar = document.getElementById('grantProgressBar');
   const priorityHealthEl = document.getElementById('priorityHealth');
   const activeAlertsEl = document.getElementById('activeAlerts');
+  const topPersonaChip = document.getElementById('topPersonaChip');
 
   const activeLeadCount = dashboardMetrics.activeLeads ?? activeLeads.length;
   if (activeLeadEl) activeLeadEl.textContent = activeLeadCount;
@@ -527,9 +771,19 @@ function renderDashboard() {
     activeAlertsEl.classList.toggle('meta-chip--info', alerts > 0);
   }
 
+  if (topPersonaChip) {
+    if (topPersonaName) {
+      topPersonaChip.textContent = `Top Persona: ${topPersonaName}`;
+      topPersonaChip.style.display = 'inline-flex';
+    } else {
+      topPersonaChip.style.display = 'none';
+    }
+  }
+
   renderLeadHealth();
   renderConversionSnapshot();
   renderTopOpportunity();
+  renderPersonaSnapshot(personaBreakdown);
   renderActionCenter();
   updateCharts();
 }
@@ -545,6 +799,15 @@ function renderLeadHealth() {
   const totalEquipment = dashboardMetrics.totalEquipment ?? state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
   const avgQuantity = totalLeads === 0 ? 0 : Math.round(totalEquipment / totalLeads);
   const followUpsDue = calculateActiveAlerts();
+  const personaBreakdown = state.dashboard?.personaBreakdown || buildPersonaBreakdown(state.leads);
+  state.analytics.personaBreakdown = personaBreakdown;
+  const topPersonaEntry = getTopPersona(personaBreakdown);
+  state.analytics.topPersona = topPersonaEntry
+    ? { name: topPersonaEntry[0], count: topPersonaEntry[1] }
+    : null;
+  state.dashboard = state.dashboard || {};
+  state.dashboard.personaBreakdown = personaBreakdown;
+  state.dashboard.topPersona = state.analytics.topPersona;
 
   container.innerHTML = `
     <span class="health-pill"><span class="health-pill__value">${formatNumber(totalLeads)}</span> total leads</span>
@@ -552,6 +815,7 @@ function renderLeadHealth() {
     <span class="health-pill"><span class="health-pill__value">${formatNumber(avgQuantity)}</span> avg devices</span>
     <span class="health-pill"><span class="health-pill__value">${formatNumber(followUpsDue)}</span> follow-ups due</span>
     <span class="health-pill"><span class="health-pill__value">${formatNumber(conversions)}</span> conversions</span>
+    ${topPersonaEntry ? `<span class="health-pill"><span class="health-pill__value">${escapeHtml(topPersonaEntry[0])}</span> lead persona</span>` : ''}
   `;
 }
 
@@ -621,6 +885,8 @@ function renderTopOpportunity() {
     return;
   }
 
+  assignPersonaMetadata(topLead);
+
   container.innerHTML = `
     <h4 class="snapshot-feature__title">${escapeHtml(topLead.title)}</h4>
     <div class="snapshot-feature__meta">
@@ -630,8 +896,41 @@ function renderTopOpportunity() {
       ${topLead.estimatedQuantity ? `<span>💻 ${formatNumber(topLead.estimatedQuantity)} devices</span>` : ''}
       ${topLead.followUpDate ? `<span>📅 ${formatDate(topLead.followUpDate)}</span>` : ''}
     </div>
+    <div class="snapshot-feature__persona">${renderPersonaBadge(topLead)}</div>
     <p class="snapshot-feature__description">${escapeHtml(topLead.notes || 'Capture next steps and stakeholders to keep momentum up.')}</p>
   `;
+}
+
+function renderPersonaSnapshot(breakdown = {}) {
+  const container = document.getElementById('personaSnapshot');
+  if (!container) return;
+
+  const entries = Object.entries(breakdown)
+    .sort(([, countA], [, countB]) => countB - countA)
+    .slice(0, 4);
+  const total = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
+
+  if (!entries.length || total === 0) {
+    container.innerHTML = '<li class="persona-list__item persona-list__item--empty">No persona data yet.</li>';
+    return;
+  }
+
+  container.innerHTML = entries
+    .map(([name, count]) => {
+      const pct = Math.round((count / total) * 100);
+      return `
+        <li class="persona-list__item">
+          <div class="persona-list__heading">
+            <span class="persona-list__label">${escapeHtml(name)}</span>
+            <span class="persona-list__count">${formatNumber(count)} · ${pct}%</span>
+          </div>
+          <div class="persona-list__bar">
+            <span style="width:${Math.min(100, pct)}%"></span>
+          </div>
+        </li>
+      `;
+    })
+    .join('');
 }
 
 function renderActionCenter() {
@@ -861,6 +1160,7 @@ function updateCharts() {
 }
 
 function renderCorporateTargets() {
+  renderPipelineBoard();
   const container = document.getElementById('corporateTargets');
   if (!container) return;
 
@@ -921,6 +1221,954 @@ function renderCorporateTargets() {
     .join('');
 }
 
+function renderDataHub() {
+  const listEl = document.getElementById('entityList');
+  const detailEl = document.getElementById('entityDetail');
+  const dedupeEl = document.getElementById('dedupeList');
+  if (!listEl || !detailEl) return;
+
+  const records = state.entities ?? [];
+  if (!records.length) {
+    listEl.innerHTML = `<div class="empty-state"><p>No contacts synced yet. Connect Gmail, Outlook, or import a CSV to populate the hub.</p></div>`;
+    detailEl.innerHTML = `<div class="empty-state"><h3>Bring your relationships together</h3><p>Once data sync completes you will see household, company, and interaction timelines here.</p></div>`;
+    if (dedupeEl) {
+      dedupeEl.innerHTML = '<div class="empty-state"><p>No duplicates flagged.</p></div>';
+    }
+    return;
+  }
+
+  const query = uiState.entityQuery || '';
+  const filtered = records
+    .filter((record) => {
+      if (!query) return true;
+      const haystack = [record.name, record.displayName, record.organizationName, record.householdName, ...(record.emails || []), ...(record.tags || [])]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    })
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty-state"><p>No records found. Try adjusting your search.</p></div>`;
+    detailEl.innerHTML = `<div class="empty-state"><h3>No match</h3><p>Search returned no contacts or organizations.</p></div>`;
+    return;
+  }
+
+  if (!uiState.selectedEntityId || !filtered.some((record) => record.id === uiState.selectedEntityId)) {
+    uiState.selectedEntityId = filtered[0].id;
+  }
+
+  listEl.innerHTML = filtered
+    .slice(0, 60)
+    .map((record) => {
+      const typeLabel = record.recordType === 'organization' ? 'Organization' : record.recordType === 'household' ? 'Household' : 'Contact';
+      const subtitle = record.recordType === 'contact'
+        ? record.organizationName || record.emails?.[0] || 'Unassigned'
+        : record.recordType === 'organization'
+          ? `${record.contactCount || 0} linked contacts`
+          : `${record.contactIds?.length || 0} contacts`;
+      return `
+        <button type="button" class="data-hub__list-item" data-entity-id="${escapeHtml(record.id)}" data-active="${record.id === uiState.selectedEntityId}">
+          <div class="data-hub__title">${escapeHtml(record.name || record.displayName || 'Record')}</div>
+          <div class="data-hub__meta">
+            <span>${escapeHtml(typeLabel)}</span>
+            <span>${escapeHtml(subtitle)}</span>
+          </div>
+        </button>
+      `;
+    })
+    .join('');
+
+  listEl.querySelectorAll('.data-hub__list-item').forEach((button) => {
+    button.addEventListener('click', () => {
+      uiState.selectedEntityId = button.getAttribute('data-entity-id');
+      renderDataHub();
+    });
+  });
+
+  const selectedRecord = filtered.find((record) => record.id === uiState.selectedEntityId) || filtered[0];
+  detailEl.innerHTML = buildEntityDetail(selectedRecord);
+
+  if (dedupeEl) {
+    renderDedupePanel(dedupeEl);
+  }
+}
+
+function buildEntityDetail(record) {
+  if (!record) {
+    return `<div class="empty-state"><h3>Select a record</h3><p>Review contact timelines, linked leads, and grant activity.</p></div>`;
+  }
+
+  const typeLabel = record.recordType === 'organization' ? 'Organization' : record.recordType === 'household' ? 'Household' : 'Contact';
+  const leadChips = (record.leadIds || [])
+    .map((leadId) => {
+      const lead = state.leads.find((item) => item.id === leadId);
+      if (!lead) return '';
+      return `<button class="chip" type="button" onclick="viewLead('${escapeQuotes(lead.id)}')">${escapeHtml(lead.title)}</button>`;
+    })
+    .filter(Boolean)
+    .join('');
+
+  const metadata = [
+    { label: 'Record Type', value: typeLabel },
+    { label: 'Organization', value: record.organizationName || '—' },
+    { label: 'Household', value: record.householdName || '—' },
+    { label: 'Emails', value: (record.emails || []).join(', ') || '—' },
+    { label: 'Phones', value: (record.phones || []).join(', ') || '—' },
+    { label: 'Updated', value: formatRelativeTime(record.updatedAt || record.createdAt) }
+  ]
+    .map((entry) => `
+      <div class="detail-item">
+        <span class="detail-label">${escapeHtml(entry.label)}:</span>
+        <span class="detail-value">${escapeHtml(entry.value)}</span>
+      </div>
+    `)
+    .join('');
+
+  const timeline = buildEntityTimeline(record);
+
+  return `
+    <header class="entity-header">
+      <div>
+        <h3>${escapeHtml(record.name || record.displayName || 'Record')}</h3>
+        <p class="section-subtitle">${escapeHtml(typeLabel)} record with ${record.leadIds?.length || 0} linked leads.</p>
+      </div>
+      <div class="entity-tags">${(record.tags || []).map((tag) => `<span class="chip">${escapeHtml(tag)}</span>`).join('')}</div>
+    </header>
+    <section class="entity-metadata">${metadata}</section>
+    <section>
+      <h4>Linked Leads</h4>
+      <div class="chip-group">${leadChips || '<span class="detail-value">No leads linked yet.</span>'}</div>
+    </section>
+    <section>
+      <h4>Interaction Timeline</h4>
+      <div class="timeline">${timeline}</div>
+    </section>
+  `;
+}
+
+function buildEntityTimeline(record) {
+  const interactions = (state.interactions || [])
+    .filter((event) => event.entityId === record.id || event.leadId && (record.leadIds || []).includes(event.leadId))
+    .sort((a, b) => new Date(b.occurredAt || 0) - new Date(a.occurredAt || 0));
+
+  if (!interactions.length) {
+    return '<div class="empty-state"><p>No interactions synced yet.</p></div>';
+  }
+
+  return interactions
+    .slice(0, 15)
+    .map((event) => {
+      const when = formatRelativeTime(event.occurredAt);
+      return `
+        <article class="activity-item">
+          <div class="activity-date">${escapeHtml(when)}</div>
+          <div>
+            <div class="activity-text">${escapeHtml(event.summary || 'Interaction captured')}</div>
+            <div class="activity-meta">${escapeHtml(event.type || 'note')} · ${escapeHtml(event.direction || '')}</div>
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+}
+
+function renderDedupePanel(container) {
+  if (!container) return;
+  const matches = state.dedupeMatches ?? [];
+  if (!matches.length) {
+    container.innerHTML = '<div class="empty-state"><p>No duplicates flagged.</p></div>';
+    return;
+  }
+
+  container.innerHTML = matches
+    .slice(0, 8)
+    .map((match) => {
+      const [primaryId, duplicateId] = match.ids || [];
+      const primary = state.entities.find((entity) => entity.id === primaryId);
+      const duplicate = state.entities.find((entity) => entity.id === duplicateId);
+      if (!primary || !duplicate) return '';
+      return `
+        <div class="dedupe-card">
+          <div>
+            <div class="detail-label">${escapeHtml(match.key)}</div>
+            <div class="detail-value">${escapeHtml(primary.name || primary.displayName || primaryId)} ↔ ${escapeHtml(duplicate.name || duplicate.displayName || duplicateId)}</div>
+          </div>
+          <button class="btn btn--outline btn-sm" type="button" onclick="mergeDuplicate('${escapeQuotes(primaryId)}','${escapeQuotes(duplicateId)}')">Merge</button>
+        </div>
+      `;
+    })
+    .filter(Boolean)
+    .join('');
+}
+
+async function mergeDuplicate(primaryId, duplicateId) {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Merging records requires the live API.', 'warning');
+    return;
+  }
+  try {
+    await apiRequest(`/entities/${primaryId}/merge`, {
+      method: 'POST',
+      body: { duplicateId }
+    });
+    createToast('Records merged', 'Duplicate contacts consolidated.', 'success');
+    await refreshFromApi();
+    await refreshDedupes();
+  } catch (error) {
+    console.error('Failed to merge contacts', error);
+    createToast('Merge failed', error.message || 'Unable to merge contacts', 'error');
+  }
+}
+
+function renderAutomationStudio() {
+  const listEl = document.getElementById('automationList');
+  const tasksEl = document.getElementById('taskQueue');
+  const pipelineSelect = document.getElementById('automationPipeline');
+  const stageSelect = document.getElementById('automationStage');
+  const followUpInput = document.getElementById('automationFollowupDays');
+  if (!listEl || !tasksEl || !pipelineSelect || !stageSelect || !followUpInput) return;
+
+  const pipelines = state.pipelines ?? [];
+  if (!pipelines.length) {
+    pipelineSelect.innerHTML = '<option value="" disabled selected>No pipelines configured</option>';
+    stageSelect.innerHTML = '<option value="" disabled selected>---</option>';
+    listEl.innerHTML = '<div class="empty-state"><p>Create a pipeline to start designing automations.</p></div>';
+    tasksEl.innerHTML = '<div class="empty-state"><p>No tasks in queue.</p></div>';
+    return;
+  }
+
+  if (!uiState.selectedAutomationPipelineId || !pipelines.some((pipeline) => pipeline.id === uiState.selectedAutomationPipelineId)) {
+    uiState.selectedAutomationPipelineId = pipelines[0].id;
+  }
+
+  const pipelineOptions = pipelines
+    .map((pipeline) => `<option value="${escapeHtml(pipeline.id)}" ${pipeline.id === uiState.selectedAutomationPipelineId ? 'selected' : ''}>${escapeHtml(pipeline.name)}</option>`)
+    .join('');
+  pipelineSelect.innerHTML = pipelineOptions;
+
+  const selectedPipeline = pipelines.find((pipeline) => pipeline.id === uiState.selectedAutomationPipelineId) || pipelines[0];
+  const stageOptions = (selectedPipeline?.stages || [])
+    .sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0))
+    .map((stage, index) => {
+      const selected = uiState.selectedAutomationStageId
+        ? stage.id === uiState.selectedAutomationStageId
+        : index === 0;
+      if (selected) {
+        uiState.selectedAutomationStageId = stage.id;
+      }
+      return `<option value="${escapeHtml(stage.id)}" ${selected ? 'selected' : ''}>${escapeHtml(stage.name)}</option>`;
+    })
+    .join('');
+  stageSelect.innerHTML = stageOptions || '<option value="" disabled selected>No stages configured</option>';
+  stageSelect.disabled = !stageOptions;
+
+  pipelineSelect.addEventListener('change', (event) => {
+    uiState.selectedAutomationPipelineId = event.target.value;
+    uiState.selectedAutomationStageId = null;
+    renderAutomationStudio();
+  });
+
+  stageSelect.addEventListener('change', (event) => {
+    uiState.selectedAutomationStageId = event.target.value;
+  });
+
+  const automations = state.automations ?? [];
+  if (!automations.length) {
+    listEl.innerHTML = '<div class="empty-state"><p>No automations yet. Use the designer to schedule follow-ups automatically.</p></div>';
+  } else {
+    listEl.innerHTML = automations
+      .map((automation) => {
+        const stageNames = (automation.trigger?.stageIds || [])
+          .map((id) => {
+            const stage = selectedPipeline?.stages?.find((item) => item.id === id) || state.pipelines.flatMap((pipe) => pipe.stages || []).find((item) => item.id === id);
+            return stage ? stage.name : 'Stage';
+          })
+          .join(', ');
+        const actions = (automation.actions || []).map((action) => action.type.replace(/_/g, ' ')).join(', ');
+        return `
+          <article class="automation-card" data-automation-id="${escapeHtml(automation.id)}">
+            <div class="kanban-card__title">${escapeHtml(automation.name)}</div>
+            <div class="automation-pill">${escapeHtml(automation.status || 'active')}</div>
+            <p class="detail-value">When ${stageNames || 'pipeline updates'} &middot; Actions: ${escapeHtml(actions || 'N/A')}</p>
+            <div class="lead-actions">
+              <button class="btn btn--outline btn-sm" type="button" onclick="toggleAutomationStatus('${escapeQuotes(automation.id)}','${escapeQuotes(automation.status || 'active')}')">${automation.status === 'paused' ? 'Resume' : 'Pause'}</button>
+              <button class="btn btn--outline btn-sm" type="button" onclick="deleteAutomation('${escapeQuotes(automation.id)}')">Delete</button>
+            </div>
+          </article>
+        `;
+      })
+      .join('');
+  }
+
+  const tasks = state.tasks ?? [];
+  if (!tasks.length) {
+    tasksEl.innerHTML = '<div class="empty-state"><p>No follow-up tasks in the queue.</p></div>';
+  } else {
+    tasksEl.innerHTML = tasks
+      .map((task) => {
+        const statusLabel = task.status === 'completed' ? 'Completed' : formatRelativeTime(task.dueDate || task.due_date || task.updatedAt);
+        return `
+          <article class="task-card" data-status="${escapeHtml(task.status)}">
+            <div class="kanban-card__title">${escapeHtml(task.title)}</div>
+            <div class="detail-value">Due: ${escapeHtml(formatDate(task.dueDate || task.due_date || task.updatedAt))}</div>
+            <div class="detail-value">Status: ${escapeHtml(statusLabel)}</div>
+            <div class="lead-actions">
+              ${task.status === 'completed' ? '' : `<button class="btn btn--outline btn-sm" type="button" onclick="completeTaskAction('${escapeQuotes(task.id)}')">Mark Done</button>`}
+              ${task.leadId ? `<button class="btn btn--outline btn-sm" type="button" onclick="viewLead('${escapeQuotes(task.leadId)}')">Open Lead</button>` : ''}
+            </div>
+          </article>
+        `;
+      })
+      .join('');
+  }
+}
+
+async function handleAutomationSubmit(event) {
+  event.preventDefault();
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Automations require the live API.', 'warning');
+    return;
+  }
+
+  const form = event.target;
+  const name = form.querySelector('#automationName')?.value?.trim();
+  const pipelineId = form.querySelector('#automationPipeline')?.value;
+  const stageId = form.querySelector('#automationStage')?.value;
+  const followUpDays = Number(form.querySelector('#automationFollowupDays')?.value || 3);
+  const minPriority = Number(form.querySelector('#automationPriority')?.value || 0);
+  const notes = form.querySelector('#automationNotes')?.value?.trim();
+
+  if (!name || !pipelineId || !stageId) {
+    createToast('Missing fields', 'Name, pipeline, and stage are required.', 'error');
+    return;
+  }
+
+  try {
+    await apiRequest('/automations', {
+      method: 'POST',
+      body: {
+        name,
+        trigger: {
+          type: 'stage_change',
+          pipelineId,
+          stageIds: [stageId]
+        },
+        conditions: {
+          minimumPriority: Number.isNaN(minPriority) ? undefined : minPriority
+        },
+        actions: [
+          {
+            type: 'schedule_follow_up',
+            dueInDays: Number.isNaN(followUpDays) ? 3 : followUpDays,
+            reason: notes || 'Automation follow-up'
+          },
+          notes
+            ? { type: 'record_activity', message: notes, activityType: 'automation' }
+            : { type: 'record_activity', message: `Automated follow-up scheduled for stage ${stageId}`, activityType: 'automation' }
+        ]
+      }
+    });
+
+    createToast('Automation saved', 'Flow is now monitoring your pipeline.', 'success');
+    form.reset();
+    form.querySelector('#automationFollowupDays').value = 3;
+    form.querySelector('#automationPriority').value = 70;
+    await refreshAutomations();
+    await refreshTasks();
+  } catch (error) {
+    console.error('Failed to create automation', error);
+    createToast('Automation failed', error.message || 'Unable to save automation', 'error');
+  }
+}
+
+async function refreshAutomations() {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest('/automations', { method: 'GET' });
+    const payload = await response.json();
+    state.automations = Array.isArray(payload) ? payload : payload.automations || [];
+    renderAutomationStudio();
+  } catch (error) {
+    console.warn('Unable to refresh automations', error);
+  }
+}
+
+async function refreshTasks() {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest('/tasks', { method: 'GET' });
+    const payload = await response.json();
+    state.tasks = Array.isArray(payload) ? payload : payload.tasks || [];
+    renderAutomationStudio();
+  } catch (error) {
+    console.warn('Unable to refresh tasks', error);
+  }
+}
+
+async function toggleAutomationStatus(id, status) {
+  if (!apiAvailable) return;
+  const nextStatus = status === 'paused' ? 'active' : 'paused';
+  try {
+    await apiRequest(`/automations/${id}`, {
+      method: 'PATCH',
+      body: { status: nextStatus }
+    });
+    createToast('Automation updated', `Flow is now ${nextStatus}.`, 'info');
+    await refreshAutomations();
+  } catch (error) {
+    console.error('Failed to toggle automation', error);
+    createToast('Update failed', error.message || 'Unable to update automation', 'error');
+  }
+}
+
+async function deleteAutomation(id) {
+  if (!apiAvailable) return;
+  const confirmed = window.confirm('Delete this automation? Flow history will remain in the audit log.');
+  if (!confirmed) return;
+  try {
+    await apiRequest(`/automations/${id}`, { method: 'DELETE' });
+    createToast('Automation removed', 'Flow deleted successfully.', 'success');
+    await refreshAutomations();
+  } catch (error) {
+    console.error('Failed to delete automation', error);
+    createToast('Delete failed', error.message || 'Unable to delete automation', 'error');
+  }
+}
+
+async function completeTaskAction(id) {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Task completion syncs with the live API.', 'warning');
+    return;
+  }
+  try {
+    await apiRequest(`/tasks/${id}/complete`, { method: 'PATCH' });
+    createToast('Task completed', 'Marked complete and logged to the timeline.', 'success');
+    await refreshTasks();
+  } catch (error) {
+    console.error('Failed to complete task', error);
+    createToast('Action failed', error.message || 'Unable to complete task', 'error');
+  }
+}
+
+function renderMapView() {
+  const mapContainer = document.getElementById('mapView');
+  const summaryEl = document.getElementById('mapSummary');
+  const routesEl = document.getElementById('routeList');
+  if (!mapContainer || !summaryEl || !routesEl) return;
+
+  const points = (state.mapPoints && state.mapPoints.length ? state.mapPoints : deriveMapPointsFromLeads()).slice(0, 250);
+
+  if (!mapInstance) {
+    mapInstance = L.map(mapContainer).setView([35.7796, -78.6382], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(mapInstance);
+    mapReady = true;
+  } else {
+    mapInstance.invalidateSize();
+  }
+
+  mapMarkers.forEach((marker) => marker.remove());
+  mapMarkers = points.map((point) => {
+    const marker = L.circleMarker([point.lat, point.lng], {
+      radius: Math.max(6, Math.min(14, (point.estimatedQuantity || 10) / 20)),
+      fillColor: '#0f766e',
+      color: '#0f4c5c',
+      weight: 1,
+      fillOpacity: 0.75
+    }).addTo(mapInstance);
+    marker.bindPopup(`
+      <strong>${escapeHtml(point.title || point.company || 'Lead')}</strong><br>
+      ${escapeHtml(point.company || 'Unknown')}<br>
+      ${escapeHtml(point.location || 'Location pending')}<br>
+      ${point.persona ? `Persona: ${escapeHtml(point.persona)}<br>` : ''}
+      Qty: ${formatNumber(point.estimatedQuantity || 0)}
+    `);
+    return marker;
+  });
+
+  if (points.length) {
+    const bounds = L.latLngBounds(points.map((point) => [point.lat, point.lng]));
+    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  const totalDevices = points.reduce((sum, point) => sum + (Number(point.estimatedQuantity) || 0), 0);
+  const highPriority = points.filter((point) => (point.priority || 0) >= 80).length;
+  summaryEl.innerHTML = `
+    <div class="detail-item">
+      <span class="detail-label">Stops</span>
+      <span class="detail-value">${formatNumber(points.length)}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Projected Devices</span>
+      <span class="detail-value">${formatNumber(totalDevices)}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">High Priority</span>
+      <span class="detail-value">${formatNumber(highPriority)}</span>
+    </div>
+  `;
+
+  const upcoming = points
+    .filter((point) => point.followUpDate)
+    .sort((a, b) => new Date(a.followUpDate) - new Date(b.followUpDate))
+    .slice(0, 6);
+
+  routesEl.innerHTML = upcoming.length
+    ? upcoming
+        .map((point) => `
+            <div class="route-card">
+              <div class="detail-label">${formatDate(point.followUpDate)}</div>
+              <div class="detail-value">${escapeHtml(point.company || point.title || 'Lead')}</div>
+              <div class="detail-value">${escapeHtml(point.location || 'Location pending')}</div>
+              <button class="btn btn--outline btn-sm" type="button" onclick="viewLead('${escapeQuotes(point.id)}')">Open Lead</button>
+            </div>
+          `)
+        .join('')
+    : '<div class="empty-state"><p>No scheduled routes this week.</p></div>';
+
+  if (apiAvailable && !state.mapPoints?.length) {
+    refreshMap();
+  }
+}
+
+async function refreshMap() {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest('/maps/leads', { method: 'GET' });
+    const payload = await response.json();
+    state.mapPoints = Array.isArray(payload) ? payload : payload.points || [];
+    renderMapView();
+  } catch (error) {
+    console.warn('Unable to refresh map', error);
+  }
+}
+
+function renderOperationsConsole() {
+  const ingestionEl = document.getElementById('ingestionConsole');
+  const connectorEl = document.getElementById('connectorConsole');
+  const apiKeyEl = document.getElementById('apiKeyConsole');
+  const formEl = document.getElementById('formConsole');
+  if (!ingestionEl || !connectorEl || !apiKeyEl || !formEl) return;
+
+  const jobs = state.ingestionJobs ?? [];
+  ingestionEl.innerHTML = jobs.length
+    ? jobs
+        .map((job) => `
+          <div class="admin-table__row">
+            <div>
+              <strong>${escapeHtml(job.source || job.id)}</strong>
+              <div class="detail-value">Status: ${escapeHtml(job.status || 'idle')} · Next: ${escapeHtml(job.nextRunAt || '—')}</div>
+            </div>
+            <div class="lead-actions">
+              <button class="btn btn--outline btn-sm" type="button" onclick="runIngestionJob('${escapeQuotes(job.id)}')">Run</button>
+              <button class="btn btn--outline btn-sm" type="button" onclick="toggleIngestionJob('${escapeQuotes(job.id)}', ${job.enabled ? 'false' : 'true'})">${job.enabled ? 'Pause' : 'Resume'}</button>
+            </div>
+          </div>
+        `)
+        .join('')
+    : '<div class="empty-state"><p>No ingestion jobs configured.</p></div>';
+
+  const connectors = state.connectors ?? [];
+  connectorEl.innerHTML = `
+    ${(connectors.length
+      ? connectors
+          .map(
+            (connector) => `
+              <div class="admin-table__row">
+                <div>
+                  <strong>${escapeHtml(connector.name)}</strong>
+                  <div class="detail-value">${escapeHtml(connector.type)} · ${escapeHtml(connector.status || 'connected')}</div>
+                </div>
+                <div class="lead-actions">
+                  <button class="btn btn--outline btn-sm" type="button" onclick="refreshConnector('${escapeQuotes(connector.id)}')">Sync</button>
+                </div>
+              </div>
+            `
+          )
+          .join('')
+      : '<div class="empty-state"><p>No connectors registered.</p></div>')
+    }
+    <section class="connector-import">
+      <h4>Quick Import</h4>
+      <textarea class="form-control" id="csvImportText" rows="3" placeholder="Paste CSV rows to ingest interactions"></textarea>
+      <div class="lead-actions">
+        <button class="btn btn--outline btn-sm" type="button" onclick="importCsvInteractions()">Import CSV</button>
+        <button class="btn btn--outline btn-sm" type="button" onclick="importIcsCalendar()">Import ICS</button>
+      </div>
+    </section>
+  `;
+
+  const apiKeys = state.apiKeys ?? [];
+  apiKeyEl.innerHTML = apiKeys.length
+    ? apiKeys
+        .map((key) => `
+          <div class="admin-table__row">
+            <div>
+              <strong>${escapeHtml(key.name)}</strong>
+              <div class="detail-value">Prefix ${escapeHtml(key.prefix || '')} · Scopes: ${(key.scopes || []).join(', ') || '—'}</div>
+            </div>
+            <div class="lead-actions">
+              <button class="btn btn--outline btn-sm" type="button" onclick="revokeApiKey('${escapeQuotes(key.id)}')">Revoke</button>
+            </div>
+          </div>
+        `)
+        .join('')
+    : '<div class="empty-state"><p>No API keys issued.</p></div>';
+
+  const forms = state.forms ?? [];
+  formEl.innerHTML = forms.length
+    ? forms
+        .map((form) => `
+          <div class="admin-table__row">
+            <div>
+              <strong>${escapeHtml(form.name)}</strong>
+              <div class="detail-value">/${escapeHtml(form.slug)} · ${escapeHtml(form.status || 'active')}</div>
+            </div>
+            <div class="lead-actions">
+              <button class="btn btn--outline btn-sm" type="button" onclick="copyFormEmbed('${escapeQuotes(form.id)}')">Copy Embed</button>
+            </div>
+          </div>
+        `)
+        .join('')
+    : '<div class="empty-state"><p>No intake forms created.</p></div>';
+}
+
+async function refreshOperationsConsole() {
+  if (!apiAvailable) {
+    renderOperationsConsole();
+    return;
+  }
+  try {
+    const [jobs, connectors, forms, keys] = await Promise.all([
+      apiRequest('/admin/ingestion', { method: 'GET' }).then((res) => res.json()),
+      apiRequest('/connectors', { method: 'GET' }).then((res) => res.json()),
+      apiRequest('/forms', { method: 'GET' }).then((res) => res.json()),
+      apiRequest('/security/api-keys', { method: 'GET' }).then((res) => res.json())
+    ]);
+    state.ingestionJobs = Array.isArray(jobs) ? jobs : jobs.ingestionJobs || jobs;
+    state.connectors = Array.isArray(connectors) ? connectors : connectors.connectors || connectors;
+    state.forms = Array.isArray(forms) ? forms : forms.forms || forms;
+    state.apiKeys = Array.isArray(keys) ? keys : keys.apiKeys || keys;
+    renderOperationsConsole();
+  } catch (error) {
+    console.warn('Unable to refresh operations console', error);
+  }
+}
+
+async function runIngestionJob(id) {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Ingestion jobs require the live API.', 'warning');
+    return;
+  }
+  try {
+    await apiRequest(`/admin/ingestion/${id}/run`, {
+      method: 'POST',
+      body: { success: true, itemCount: 0, notes: 'Manual run from console' }
+    });
+    createToast('Ingestion queued', 'Job executed successfully.', 'success');
+    await refreshOperationsConsole();
+  } catch (error) {
+    console.error('Failed to run ingestion job', error);
+    createToast('Run failed', error.message || 'Unable to trigger job', 'error');
+  }
+}
+
+async function toggleIngestionJob(id, enabled) {
+  if (!apiAvailable) return;
+  try {
+    await apiRequest(`/admin/ingestion/${id}`, {
+      method: 'PATCH',
+      body: { enabled }
+    });
+    createToast('Ingestion updated', enabled ? 'Job resumed.' : 'Job paused.', 'info');
+    await refreshOperationsConsole();
+  } catch (error) {
+    console.error('Failed to toggle ingestion job', error);
+    createToast('Update failed', error.message || 'Unable to update job', 'error');
+  }
+}
+
+async function refreshConnector(id) {
+  if (!apiAvailable) return;
+  createToast('Sync requested', 'Connector sync will run shortly.', 'info');
+  await refreshOperationsConsole();
+}
+
+async function importCsvInteractions() {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'CSV import syncs interactions to the API.', 'warning');
+    return;
+  }
+  const textarea = document.getElementById('csvImportText');
+  if (!textarea || !textarea.value.trim()) {
+    createToast('Missing CSV', 'Paste CSV rows before importing.', 'error');
+    return;
+  }
+  try {
+    await apiRequest('/connectors/import/csv', {
+      method: 'POST',
+      body: { csv: textarea.value }
+    });
+    textarea.value = '';
+    createToast('CSV imported', 'Interactions appended to timelines.', 'success');
+    await refreshInteractions(200);
+    await refreshOperationsConsole();
+  } catch (error) {
+    console.error('CSV import failed', error);
+    createToast('Import failed', error.message || 'Unable to parse CSV', 'error');
+  }
+}
+
+async function importIcsCalendar() {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Calendar import syncs with the API.', 'warning');
+    return;
+  }
+  const textarea = document.getElementById('csvImportText');
+  if (!textarea || !textarea.value.trim()) {
+    createToast('Missing ICS', 'Paste ICS content before importing.', 'error');
+    return;
+  }
+  try {
+    await apiRequest('/connectors/import/ics', {
+      method: 'POST',
+      body: { ics: textarea.value }
+    });
+    textarea.value = '';
+    createToast('Calendar imported', 'Events added to the timeline.', 'success');
+    await refreshInteractions(200);
+  } catch (error) {
+    console.error('ICS import failed', error);
+    createToast('Import failed', error.message || 'Unable to parse ICS file', 'error');
+  }
+}
+
+function openConnectorModal() {
+  openModal('connectorModal');
+}
+
+function closeConnectorModal() {
+  closeModal('connectorModal');
+}
+
+async function submitConnectorForm() {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Connector registration requires the live API.', 'warning');
+    return;
+  }
+  const name = document.getElementById('connectorName')?.value?.trim();
+  const type = document.getElementById('connectorType')?.value;
+  const status = document.getElementById('connectorStatus')?.value;
+  const settings = document.getElementById('connectorSettings')?.value;
+  if (!name || !type) {
+    createToast('Missing fields', 'Connector name and type are required.', 'error');
+    return;
+  }
+  try {
+    await apiRequest('/connectors', {
+      method: 'POST',
+      body: {
+        name,
+        type,
+        status,
+        settings: settings ? { notes: settings } : undefined
+      }
+    });
+    createToast('Connector saved', 'Connector registered successfully.', 'success');
+    closeConnectorModal();
+    await refreshOperationsConsole();
+  } catch (error) {
+    console.error('Failed to register connector', error);
+    createToast('Save failed', error.message || 'Unable to register connector', 'error');
+  }
+}
+
+function openApiKeyModal() {
+  openModal('apiKeyModal');
+}
+
+function closeApiKeyModal() {
+  closeModal('apiKeyModal');
+}
+
+async function submitApiKeyForm() {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'API key generation requires the live API.', 'warning');
+    return;
+  }
+  const name = document.getElementById('apiKeyName')?.value?.trim();
+  const expiry = document.getElementById('apiKeyExpiry')?.value;
+  const originInput = document.getElementById('apiKeyOrigins');
+  const scopes = Array.from(document.querySelectorAll('#apiKeyForm input[type="checkbox"]:checked')).map((input) => input.value);
+  if (!name) {
+    createToast('Missing label', 'Provide a key label before generating.', 'error');
+    return;
+  }
+  try {
+    const response = await apiRequest('/security/api-keys', {
+      method: 'POST',
+      body: {
+        name,
+        scopes,
+        expiresAt: expiry || undefined,
+        allowedOrigins: originInput?.value ? originInput.value.split(',').map((item) => item.trim()).filter(Boolean) : undefined
+      }
+    });
+    const payload = await response.json();
+    closeApiKeyModal();
+    await refreshOperationsConsole();
+    if (payload.secret) {
+      navigator.clipboard?.writeText(payload.secret).catch(() => {});
+      createToast('API key created', 'Secret copied to clipboard.', 'success');
+    } else {
+      createToast('API key created', 'Key created successfully.', 'success');
+    }
+  } catch (error) {
+    console.error('Failed to create API key', error);
+    createToast('Create failed', error.message || 'Unable to generate API key', 'error');
+  }
+}
+
+async function revokeApiKey(id) {
+  if (!apiAvailable) return;
+  const confirmed = window.confirm('Revoke this API key? Access will be removed immediately.');
+  if (!confirmed) return;
+  try {
+    await apiRequest(`/security/api-keys/${id}`, { method: 'DELETE' });
+    createToast('API key revoked', 'Key removed successfully.', 'success');
+    await refreshOperationsConsole();
+  } catch (error) {
+    console.error('Failed to revoke API key', error);
+    createToast('Revoke failed', error.message || 'Unable to revoke API key', 'error');
+  }
+}
+
+async function copyFormEmbed(id) {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Embed snippets load from the live API.', 'warning');
+    return;
+  }
+  try {
+    const response = await apiRequest(`/forms/${id}/embed`, { method: 'GET' });
+    const snippet = await response.text();
+    await navigator.clipboard?.writeText(snippet);
+    createToast('Embed copied', 'Snippet added to clipboard.', 'success');
+  } catch (error) {
+    console.error('Failed to fetch embed snippet', error);
+    createToast('Copy failed', error.message || 'Unable to fetch embed code', 'error');
+  }
+}
+
+function renderPipelineBoard() {
+  const board = document.getElementById('pipelineBoard');
+  if (!board) return;
+
+  const pipelines = state.pipelines ?? [];
+  if (!pipelines.length) {
+    board.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__title">Pipelines not configured</div>
+        <div class="empty-state__body">Define a primary pipeline to visualize donation flow.</div>
+      </div>
+    `;
+    return;
+  }
+
+  let selected = pipelines.find((pipeline) => pipeline.id === uiState.selectedPipelineId);
+  if (!selected) {
+    selected = pipelines[0];
+    uiState.selectedPipelineId = selected?.id || null;
+  }
+
+  const options = pipelines
+    .map((pipeline) => `<option value="${escapeHtml(pipeline.id)}" ${pipeline.id === selected.id ? 'selected' : ''}>${escapeHtml(pipeline.name)}</option>`)
+    .join('');
+
+  const lanes = (selected?.stages || [])
+    .sort((a, b) => (a.ordinal ?? 0) - (b.ordinal ?? 0))
+    .map((stage) => {
+      const stageLeads = state.leads
+        .filter((lead) => lead.pipelineId === selected.id && lead.stageId === stage.id)
+        .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+
+      const cards = stageLeads
+        .map((lead) => {
+          assignPersonaMetadata(lead);
+          const probability = typeof lead.probability === 'number' ? Math.round(lead.probability * 100) : 0;
+          return `
+            <article class="kanban-card" data-lead-id="${escapeHtml(lead.id)}">
+              <div class="kanban-card__title">${escapeHtml(lead.title)}</div>
+              <div class="kanban-card__meta">
+                <span>${escapeHtml(lead.company || 'Unknown')}</span>
+                <span>${lead.estimatedQuantity ? formatNumber(lead.estimatedQuantity) : '—'} units</span>
+              </div>
+              <div class="kanban-card__meta">
+                <span>Priority ${lead.priority ?? '—'}</span>
+                <span>${probability}% win</span>
+              </div>
+              <div class="kanban-card__persona">${renderPersonaBadge(lead)}</div>
+              <button class="btn btn--outline btn-sm" type="button" onclick="viewLead('${escapeQuotes(lead.id)}')">View lead</button>
+            </article>
+          `;
+        })
+        .join('');
+
+      return `
+        <section class="kanban-lane" data-stage-id="${escapeHtml(stage.id)}">
+          <header class="kanban-lane__header">
+            <div class="kanban-lane__title">
+              <span>${escapeHtml(stage.name)}</span>
+              <span class="badge">${stageLeads.length}</span>
+            </div>
+            <p class="section-subtitle">${Math.round((stage.probability ?? 0) * 100)}% confidence</p>
+          </header>
+          <div class="kanban-lane__body">
+            ${cards || '<div class="empty-state"><p>No leads in this stage.</p></div>'}
+          </div>
+        </section>
+      `;
+    })
+    .join('');
+
+  const forecast = calculatePipelineForecast(selected.id);
+
+  board.innerHTML = `
+    <div class="kanban-header">
+      <div>
+        <h3>${escapeHtml(selected.name)}</h3>
+        <p class="section-subtitle">Forecasted yield: <strong>${formatNumber(Math.round(forecast))}</strong> devices</p>
+      </div>
+      <div class="kanban-controls">
+        <label class="form-label" for="pipelineSelect">Pipeline</label>
+        <select class="form-control" id="pipelineSelect">${options}</select>
+      </div>
+    </div>
+    <div class="kanban">${lanes}</div>
+  `;
+
+  const select = board.querySelector('#pipelineSelect');
+  if (select) {
+    select.addEventListener('change', (event) => {
+      uiState.selectedPipelineId = event.target.value;
+      renderPipelineBoard();
+    });
+  }
+}
+
+function calculatePipelineForecast(pipelineId) {
+  return state.leads
+    .filter((lead) => lead.pipelineId === pipelineId)
+    .reduce((sum, lead) => {
+      const quantity = Number(lead.estimatedQuantity ?? 0);
+      const probability = typeof lead.probability === 'number' ? lead.probability : 0.3;
+      return sum + quantity * probability;
+    }, 0);
+}
+
 function renderLeadsTable() {
   const container = document.getElementById('leadsTable');
   if (!container) return;
@@ -950,6 +2198,7 @@ function renderLeadsTable() {
           <th>Equipment</th>
           <th>Quantity</th>
           <th>Priority</th>
+          <th>Persona</th>
           <th>Status</th>
           <th>Follow-up</th>
           <th>Actions</th>
@@ -969,6 +2218,7 @@ function renderLeadsTable() {
               <td>
                 <span class="priority-badge priority-${getPriorityClass(lead.priority)}">${lead.priority ?? '—'}</span>
               </td>
+              <td>${renderPersonaBadge(lead)}</td>
               <td><span class="status status--${getStatusClass(lead.status)}">${escapeHtml(lead.status)}</span></td>
               <td>${formatFollowUp(lead.followUpDate)}</td>
             <td>
@@ -1087,6 +2337,7 @@ function renderActivities() {
 
 function filterLeads() {
   return state.leads.filter((lead) => {
+    if (!lead.persona) assignPersonaMetadata(lead);
     if (filters.status && lead.status !== filters.status) return false;
     if (filters.source && lead.source !== filters.source) return false;
 
@@ -1096,9 +2347,10 @@ function filterLeads() {
       if (filters.priority === 'medium' && (priority < 60 || priority >= 80)) return false;
       if (filters.priority === 'low' && priority >= 60) return false;
     }
+    if (filters.persona && (lead.persona || 'Uncategorized') !== filters.persona) return false;
 
     if (filters.search) {
-      const terms = [lead.title, lead.company, lead.contact]
+      const terms = [lead.title, lead.company, lead.contact, lead.persona]
         .join(' ')
         .toLowerCase();
       if (!terms.includes(filters.search)) return false;
@@ -1210,8 +2462,11 @@ function addLeadOffline(baseLead) {
     priority: baseLead.priority ?? calculatePriorityScore(baseLead)
   };
 
+  assignPersonaMetadata(newLead);
   state.leads.unshift(newLead);
   addActivity({ text: `Lead logged: ${newLead.title} (${newLead.company || 'Unknown'})`, type: 'lead' });
+  state.analytics.personaBreakdown = buildPersonaBreakdown(state.leads);
+  populatePersonaFilter();
   persistState();
 
   renderLeadsTable();
@@ -1311,6 +2566,10 @@ async function submitLeadStatusForm() {
     lead.timeline = 'Closed';
   }
 
+  assignPersonaMetadata(lead);
+  state.analytics.personaBreakdown = buildPersonaBreakdown(state.leads);
+  populatePersonaFilter();
+
   addActivity({ text: `Status updated to ${status} for ${lead.title}`, type: 'update' });
   persistState();
   closeLeadStatusModal();
@@ -1331,6 +2590,8 @@ function viewLead(leadId) {
     return;
   }
 
+  assignPersonaMetadata(lead);
+
   drawer.setAttribute('data-lead-id', leadId);
 
   if (drawerTitle) drawerTitle.textContent = lead.title;
@@ -1343,6 +2604,7 @@ function viewLead(leadId) {
     { label: 'Follow-up', value: formatDate(lead.followUpDate) },
     { label: 'Timeline', value: lead.timeline || 'TBD' },
     { label: 'Potential Value', value: lead.potentialValue || 'TBD' },
+    { label: 'Persona', value: lead.persona || 'Uncategorized' },
     { label: 'Contact', value: lead.contact || 'N/A' },
     { label: 'Location', value: lead.location || 'N/A' },
     { label: 'Source', value: lead.source || 'N/A' }
@@ -1443,8 +2705,12 @@ async function completeFollowUp(leadId) {
   }
 
   lead.followUpDate = nextDate;
+  assignPersonaMetadata(lead);
+  state.analytics.personaBreakdown = buildPersonaBreakdown(state.leads);
+  populatePersonaFilter();
   addActivity({ text: `Follow-up completed for ${lead.title}`, type: 'update' });
   persistState();
+  renderLeadsTable();
   renderDashboard();
   createToast('Follow-up rescheduled', `Next touchpoint set for ${formatDate(nextDate)}.`, 'success');
 }
@@ -1846,18 +3112,42 @@ function loadState() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
+    const leads = Array.isArray(parsed.leads) ? parsed.leads : clone(htiData.sampleLeads);
+    leads.forEach(assignPersonaMetadata);
+    const personaBreakdown = buildPersonaBreakdown(leads);
+    const topPersonaEntry = getTopPersona(personaBreakdown);
+
     return {
-      leads: Array.isArray(parsed.leads) ? parsed.leads : clone(htiData.sampleLeads),
+      leads,
       corporateTargets: Array.isArray(parsed.corporateTargets) ? parsed.corporateTargets : clone(htiData.corporateTargets),
       grantMilestones: Array.isArray(parsed.grantMilestones) ? parsed.grantMilestones : clone(htiData.grantMilestones),
       activities: Array.isArray(parsed.activities) ? parsed.activities : clone(htiData.activities),
       syncLog: Array.isArray(parsed.syncLog) ? parsed.syncLog : [],
+      entities: Array.isArray(parsed.entities) ? parsed.entities : [],
+      pipelines: Array.isArray(parsed.pipelines) ? parsed.pipelines : [],
+      automations: Array.isArray(parsed.automations) ? parsed.automations : [],
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+      ingestionJobs: Array.isArray(parsed.ingestionJobs) ? parsed.ingestionJobs : [],
+      connectors: Array.isArray(parsed.connectors) ? parsed.connectors : [],
+      forms: Array.isArray(parsed.forms) ? parsed.forms : [],
+      apiKeys: Array.isArray(parsed.apiKeys) ? parsed.apiKeys : [],
+      audit: Array.isArray(parsed.audit) ? parsed.audit : [],
+      dedupeMatches: Array.isArray(parsed.dedupeMatches) ? parsed.dedupeMatches : [],
+      interactions: Array.isArray(parsed.interactions) ? parsed.interactions : [],
+      mapPoints: Array.isArray(parsed.mapPoints) ? parsed.mapPoints : [],
       analytics: {
         baselineActiveLead: parsed.analytics?.baselineActiveLead ?? htiData.analytics.baselineActiveLead,
         baselineEquipment: parsed.analytics?.baselineEquipment ?? htiData.analytics.baselineEquipment,
+        personaBreakdown,
+        topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null,
         lastUpdatedAt: parsed.analytics?.lastUpdatedAt ?? new Date().toISOString()
       },
-      dashboard: parsed.dashboard ?? null
+      serverAnalytics: parsed.serverAnalytics ?? {},
+      dashboard: parsed.dashboard ?? {
+        metrics: {},
+        personaBreakdown,
+        topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null
+      }
     };
   } catch (error) {
     console.warn('Failed to load saved state', error);
@@ -1867,19 +3157,89 @@ function loadState() {
 }
 
 function createDefaultState() {
+  const initialLeads = clone(htiData.sampleLeads).map((lead) => assignPersonaMetadata({ ...lead }));
+  const personaBreakdown = buildPersonaBreakdown(initialLeads);
   return {
-    leads: clone(htiData.sampleLeads),
+    leads: initialLeads,
     corporateTargets: clone(htiData.corporateTargets),
     grantMilestones: clone(htiData.grantMilestones),
     activities: clone(htiData.activities),
     syncLog: [],
+    entities: buildSampleEntities(),
+    pipelines: [],
+    automations: [],
+    tasks: [],
+    ingestionJobs: [],
+    connectors: [],
+    forms: [],
+    apiKeys: [],
+    audit: [],
+    dedupeMatches: [],
+    interactions: buildSampleInteractions(),
+    mapPoints: [],
     analytics: {
       baselineActiveLead: htiData.analytics.baselineActiveLead,
       baselineEquipment: htiData.analytics.baselineEquipment,
+      personaBreakdown,
+      forecastEquipment: 0,
+      avgStageDuration: 0,
+      pipelineBreakdown: {},
       lastUpdatedAt: new Date().toISOString()
     },
+    serverAnalytics: {},
     dashboard: null
   };
+}
+
+function buildSampleEntities() {
+  const sampleLeads = clone(htiData.sampleLeads).map((lead) => assignPersonaMetadata(lead));
+  const contacts = sampleLeads.map((lead) => ({
+    id: `contact-${lead.id}`,
+    recordType: 'contact',
+    name: lead.contact || lead.company || lead.title,
+    displayName: lead.contact || lead.company || lead.title,
+    organizationName: lead.company,
+    householdName: null,
+    emails: [],
+    phones: [],
+    leadIds: [lead.id],
+    updatedAt: lead.date || new Date().toISOString()
+  }));
+
+  const organizations = clone(htiData.corporateTargets).map((target, index) => ({
+    id: `org-${index}`,
+    recordType: 'organization',
+    name: target.company,
+    displayName: target.company,
+    contactCount: contacts.filter((contact) => contact.organizationName === target.company).length,
+    leadIds: contacts
+      .filter((contact) => contact.organizationName === target.company)
+      .flatMap((contact) => contact.leadIds || []),
+    tags: [target.priority || 'Medium'],
+    updatedAt: new Date().toISOString()
+  }));
+
+  return [...contacts, ...organizations];
+}
+
+function buildSampleInteractions() {
+  return clone(htiData.sampleLeads)
+    .map(assignPersonaMetadata)
+    .slice(0, 5)
+    .map((lead, index) => {
+      const occurred = new Date(Date.now() - index * 36 * 60 * 60 * 1000).toISOString();
+      return {
+        id: `interaction-${lead.id}`,
+        leadId: lead.id,
+        entityId: `contact-${lead.id}`,
+        type: index % 2 === 0 ? 'call' : 'email',
+        direction: index % 2 === 0 ? 'outbound' : 'inbound',
+        occurredAt: occurred,
+        summary: index % 2 === 0
+          ? `Called ${lead.contact || lead.company} to discuss logistics.`
+          : `Email thread with ${lead.contact || lead.company} regarding data wipe.`
+      };
+    });
 }
 
 function persistState(updateTimestamp = true) {
@@ -1952,6 +3312,14 @@ function getPriorityClass(priority) {
   if (priority >= 80) return 'high';
   if (priority >= 60) return 'medium';
   return 'low';
+}
+
+function renderPersonaBadge(lead) {
+  if (!lead.persona) assignPersonaMetadata(lead);
+  const persona = lead.persona || 'Uncategorized';
+  const tags = (lead.personaTags || []).filter((tag) => !tag.startsWith('persona:'));
+  const title = tags.length ? `title="${escapeHtml(tags.join(', '))}"` : '';
+  return `<span class="persona-chip" ${title}>${escapeHtml(persona)}</span>`;
 }
 
 function getPriorityBadgeClass(priority) {
@@ -2044,6 +3412,32 @@ function formatActivityDate(timestamp) {
   return formatDate(timestamp);
 }
 
+function formatRelativeTime(value) {
+  if (!value) return 'Unknown';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Unknown';
+  const diffMs = Date.now() - date.getTime();
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const minutes = Math.round(diffMs / (60 * 1000));
+  if (Math.abs(minutes) < 60) {
+    return rtf.format(-minutes, 'minute');
+  }
+  const hours = Math.round(minutes / 60);
+  if (Math.abs(hours) < 48) {
+    return rtf.format(-hours, 'hour');
+  }
+  const days = Math.round(hours / 24);
+  if (Math.abs(days) < 60) {
+    return rtf.format(-days, 'day');
+  }
+  const months = Math.round(days / 30);
+  if (Math.abs(months) < 24) {
+    return rtf.format(-months, 'month');
+  }
+  const years = Math.round(months / 12);
+  return rtf.format(-years, 'year');
+}
+
 function formatNumber(value) {
   return Number(value || 0).toLocaleString('en-US');
 }
@@ -2073,6 +3467,124 @@ function aggregateEquipmentTotals(leadsCollection) {
   }
 
   return totals;
+}
+
+function assignPersonaMetadata(lead = {}) {
+  if (!lead) return lead;
+  const source = (lead.source || '').toLowerCase();
+  const equipment = (lead.equipmentType || '').toLowerCase();
+  const company = (lead.company || '').toLowerCase();
+  const notes = (lead.notes || '').toLowerCase();
+  const title = (lead.title || '').toLowerCase();
+  const location = (lead.location || '').toLowerCase();
+  const timeline = (lead.timeline || '').toLowerCase();
+  const text = `${title} ${company} ${notes} ${location}`;
+  const priority = lead.priority ?? 0;
+  const followUpDate = lead.followUpDate ? new Date(lead.followUpDate) : null;
+  const followUpDays = followUpDate && !Number.isNaN(followUpDate.getTime())
+    ? Math.round((followUpDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+    : null;
+
+  let persona = 'Corporate IT Partner';
+  if (source.includes('gsa') || text.includes('auction') || text.includes('surplus') || text.includes('state agency')) {
+    persona = 'Government Surplus';
+  } else if (source.includes('sam.gov') || source.includes('data.gov') || text.includes('federal')) {
+    persona = 'Government Procurement';
+  } else if (
+    text.includes('hospital') ||
+    text.includes('clinic') ||
+    text.includes('health') ||
+    equipment.includes('medical') ||
+    company.includes('health')
+  ) {
+    persona = 'Healthcare System';
+  } else if (
+    text.includes('school') ||
+    text.includes('district') ||
+    text.includes('college') ||
+    text.includes('university') ||
+    text.includes('education') ||
+    equipment.includes('chromebook') ||
+    equipment.includes('lab')
+  ) {
+    persona = 'Education Partner';
+  } else if (
+    source.includes('reddit') ||
+    source.includes('linkedin') ||
+    text.includes('refresh') ||
+    text.includes('upgrade') ||
+    text.includes('laptop refresh')
+  ) {
+    persona = 'Tech Refresh Donor';
+  } else if (
+    persona === 'Corporate IT Partner' &&
+    ((followUpDays !== null && followUpDays <= 3) || timeline.includes('urgent') || timeline.includes('immediate'))
+  ) {
+    persona = 'Logistics Hotshot';
+  }
+
+  const predefinedTags = PERSONA_TAG_DEFINITIONS[persona] || PERSONA_TAG_DEFINITIONS['Corporate IT Partner'] || [];
+  const tags = new Set(predefinedTags);
+  if (priority >= 80) tags.add('high-priority');
+  if (followUpDays !== null && followUpDays <= 3) tags.add('urgent');
+  if (timeline.includes('grant')) tags.add('grant');
+  if (source) tags.add(`source:${source}`);
+  if (equipment) tags.add(`equipment:${equipment.replace(/\s+/g, '-')}`);
+  tags.add(`persona:${persona.toLowerCase().replace(/\s+/g, '-')}`);
+
+  lead.persona = persona;
+  lead.personaTags = [...tags];
+  return lead;
+}
+
+function buildPersonaBreakdown(leads = []) {
+  return leads.reduce((acc, lead) => {
+    if (!lead.persona) assignPersonaMetadata(lead);
+    const persona = lead.persona || 'Uncategorized';
+    acc[persona] = (acc[persona] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function getTopPersona(breakdown = {}) {
+  const entries = Object.entries(breakdown);
+  if (!entries.length) return null;
+  return entries.sort(([, countA], [, countB]) => countB - countA)[0];
+}
+
+function deriveMapPointsFromLeads() {
+  return (state.leads || []).map((lead) => {
+    if (!lead.persona) assignPersonaMetadata(lead);
+    const coords = hashLocationToCoords(lead.location || lead.company || lead.id);
+    return {
+      id: lead.id,
+      title: lead.title,
+      company: lead.company,
+      location: lead.location,
+      estimatedQuantity: lead.estimatedQuantity,
+      followUpDate: lead.followUpDate,
+      priority: lead.priority,
+      persona: lead.persona || null,
+      personaTags: lead.personaTags || [],
+      lat: coords.lat,
+      lng: coords.lng
+    };
+  });
+}
+
+function hashLocationToCoords(seed) {
+  const value = (seed || '').toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  const lat = 25 + ((hash >>> 8) % 2000) / 100;
+  const lng = -125 + (hash % 3000) / 100;
+  return {
+    lat: Number(lat.toFixed(4)),
+    lng: Number(lng.toFixed(4))
+  };
 }
 
 function clamp(value, min, max) {
@@ -2123,6 +3635,33 @@ function createToast(title, message, variant = 'info', timeout = 4000) {
       toast.remove();
     }, timeout);
   }
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  openModalCount += 1;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  openModalCount = Math.max(0, openModalCount - 1);
+  if (openModalCount === 0) {
+    document.body.style.overflow = '';
+  }
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker
+    .register('service-worker.js')
+    .catch((error) => console.warn('Service worker registration failed', error));
 }
 
 function variantIcon(variant) {

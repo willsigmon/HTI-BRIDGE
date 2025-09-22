@@ -4,17 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HTI Business Development CRM</title>
+  <meta name="theme-color" content="#0b2c4f">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;700;900&family=PT+Sans:wght@400;700&display=swap"
     rel="stylesheet"
   >
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-o9N1j7kG1P2PzefDs2fzGEylh4G6dkprdFMn/hTyBC0bYKT1eZq9VHtV6nRvWmvMRGsiE2328kdFMvxLRb5qQw=="
+    crossorigin=""
+  >
   <link rel="stylesheet" href="style.css">
   <script>
     window.__HTI_API_BASE__ = localStorage.getItem('hti-api-base') || '/api';
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha512-vu88vSmjQ0G98rxhgbf+5Q5e0siJmq9hw3rroWAtxEvsC0BpvyEukgqS0bkkCm1cW0XkyKADVY6+wxF2g0zJ7Q=="
+    crossorigin=""
+    defer
+  ></script>
 </head>
 <body>
   <div class="app" data-color-scheme="auto">
@@ -58,9 +73,13 @@
       <div class="container">
         <div class="nav__tabs" role="tablist">
           <button class="nav__tab nav__tab--active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
-          <button class="nav__tab" data-tab="corporate" role="tab" aria-selected="false">Corporate Pipeline</button>
-          <button class="nav__tab" data-tab="leads" role="tab" aria-selected="false">Lead Management</button>
+          <button class="nav__tab" data-tab="corporate" role="tab" aria-selected="false">Pipelines</button>
+          <button class="nav__tab" data-tab="leads" role="tab" aria-selected="false">Lead Desk</button>
+          <button class="nav__tab" data-tab="dataHub" role="tab" aria-selected="false">CRM Data Hub</button>
+          <button class="nav__tab" data-tab="automation" role="tab" aria-selected="false">Automation Studio</button>
+          <button class="nav__tab" data-tab="map" role="tab" aria-selected="false">Field Ops Map</button>
           <button class="nav__tab" data-tab="grants" role="tab" aria-selected="false">Grant Compliance</button>
+          <button class="nav__tab" data-tab="admin" role="tab" aria-selected="false">Operations Console</button>
           <button class="nav__tab" data-tab="reports" role="tab" aria-selected="false">Reports</button>
         </div>
       </div>
@@ -79,6 +98,7 @@
               <div class="section-meta">
                 <span class="meta-chip">Week of September 22, 2025</span>
                 <span class="meta-chip meta-chip--info" id="activeAlerts">0 Open Alerts</span>
+                <span class="meta-chip meta-chip--success" id="topPersonaChip" style="display:none">Top Persona: —</span>
               </div>
             </header>
 
@@ -152,6 +172,19 @@
                     <button class="btn btn--outline btn--sm" type="button" onclick="viewTopLead()">View lead</button>
                   </div>
                   <div class="snapshot-feature" id="topOpportunity"></div>
+                </div>
+              </article>
+
+              <article class="card card--snapshot">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Persona Mix</h3>
+                      <p class="section-subtitle">Segment the pipeline by outreach archetype.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="switchToTab('leads')">Adjust filters</button>
+                  </div>
+                  <ul class="persona-list" id="personaSnapshot" aria-live="polite"></ul>
                 </div>
               </article>
             </section>
@@ -256,6 +289,7 @@
             </div>
           </header>
 
+          <div id="pipelineBoard" role="region" aria-live="polite"></div>
           <div class="pipeline-grid" id="corporateTargets"></div>
         </section>
 
@@ -314,6 +348,12 @@
               </select>
             </div>
             <div class="input-group">
+              <label class="form-label" for="personaFilter">Persona</label>
+              <select id="personaFilter" class="form-control">
+                <option value="">All Personas</option>
+              </select>
+            </div>
+            <div class="input-group">
               <label class="form-label" for="sortFilter">Sort</label>
               <select id="sortFilter" class="form-control">
                 <option value="priority">Priority (high to low)</option>
@@ -325,6 +365,136 @@
           </div>
 
           <div class="leads-table" id="leadsTable" role="region" aria-live="polite"></div>
+        </section>
+
+        <section id="dataHub" class="tab-content" aria-labelledby="Unified CRM data hub">
+          <header class="section-header">
+            <div>
+              <h2>Unified CRM Data Hub</h2>
+              <p class="section-subtitle">Household, contact, and organization rollups with dedupe intelligence.</p>
+            </div>
+            <div class="section-actions">
+              <div class="input-group">
+                <label class="form-label" for="dataHubSearch">Search</label>
+                <input class="form-control" id="dataHubSearch" type="search" placeholder="Search contacts, companies, or households">
+              </div>
+            </div>
+          </header>
+
+          <div class="data-hub" id="dataHubContainer">
+            <aside class="data-hub__list" id="entityList" role="navigation" aria-label="CRM records"></aside>
+            <div class="data-hub__detail" id="entityDetail">
+              <div class="empty-state">
+                <h3>Select a record</h3>
+                <p>Choose a contact or company to review linked leads, automations, and grant milestones.</p>
+              </div>
+            </div>
+          </div>
+
+          <section class="card card--inline" id="dedupePanel">
+            <div class="card__body">
+              <div class="card__header">
+                <div>
+                  <h3>Potential Duplicates</h3>
+                  <p class="section-subtitle">Flagged by normalized email and household matching.</p>
+                </div>
+                <button class="btn btn--outline btn--sm" type="button" onclick="refreshDedupes()">Refresh</button>
+              </div>
+              <div class="dedupe-list" id="dedupeList" aria-live="polite"></div>
+            </div>
+          </section>
+        </section>
+
+        <section id="automation" class="tab-content" aria-labelledby="Automation Studio">
+          <header class="section-header">
+            <div>
+              <h2>Automation Studio</h2>
+              <p class="section-subtitle">Design follow-up cadences, grant alerts, and reminder flows that run while the team is on the road.</p>
+            </div>
+          </header>
+
+          <div class="automation-grid">
+            <section class="card">
+              <div class="card__body">
+                <h3>Build Automation</h3>
+                <form id="automationForm" class="form-grid automation-form">
+                  <div class="form-group">
+                    <label class="form-label" for="automationName">Automation Name</label>
+                    <input class="form-control" id="automationName" type="text" placeholder="Example: Proposal follow-up" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="automationPipeline">Pipeline</label>
+                    <select class="form-control" id="automationPipeline"></select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="automationStage">Trigger Stage</label>
+                    <select class="form-control" id="automationStage"></select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="automationFollowupDays">Schedule follow-up (days)</label>
+                    <input class="form-control" id="automationFollowupDays" type="number" min="1" max="60" value="3">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="automationPriority">Minimum priority</label>
+                    <input class="form-control" id="automationPriority" type="number" min="0" max="100" value="70">
+                  </div>
+                  <div class="form-group form-group--full">
+                    <label class="form-label" for="automationNotes">Action notes</label>
+                    <textarea class="form-control" id="automationNotes" rows="2" placeholder="Remind outreach lead to send grant one-pager."></textarea>
+                  </div>
+                  <div class="form-actions form-group--full">
+                    <button class="btn btn--primary" type="submit">Save Automation</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__body">
+                <div class="card__header">
+                  <div>
+                    <h3>Active Automations</h3>
+                    <p class="section-subtitle">Live flows monitoring pipeline events.</p>
+                  </div>
+                  <button class="btn btn--outline btn--sm" type="button" onclick="refreshAutomations()">Refresh</button>
+                </div>
+                <div id="automationList" class="automation-list" aria-live="polite"></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__body">
+                <div class="card__header">
+                  <div>
+                    <h3>Follow-up Queue</h3>
+                    <p class="section-subtitle">Actions created by automations and manual tasks.</p>
+                  </div>
+                  <button class="btn btn--outline btn--sm" type="button" onclick="refreshTasks()">Refresh</button>
+                </div>
+                <div id="taskQueue" class="task-queue" aria-live="polite"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="map" class="tab-content" aria-labelledby="Field operations map">
+          <header class="section-header">
+            <div>
+              <h2>Field Operations Map</h2>
+              <p class="section-subtitle">Visualize pickups, drop-offs, and routing windows across HUBZone territories.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn--secondary" type="button" onclick="refreshMap()">Refresh map</button>
+            </div>
+          </header>
+
+          <div class="map-layout">
+            <div id="mapView" class="map-view" role="application" aria-label="Lead location map"></div>
+            <aside class="map-sidebar" id="mapSidebar">
+              <div class="map-sidebar__summary" id="mapSummary"></div>
+              <div class="map-sidebar__routes" id="routeList"></div>
+            </aside>
+          </div>
         </section>
 
         <!-- Grant Compliance Tab -->
@@ -420,6 +590,47 @@
           </div>
 
           <div class="report-preview" id="reportPreview" hidden></div>
+        </section>
+
+        <section id="admin" class="tab-content" aria-labelledby="Operations Console">
+          <header class="section-header">
+            <div>
+              <h2>Operations Console</h2>
+              <p class="section-subtitle">Monitor ingestion health, connectors, API keys, and embeddable intake forms.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn--secondary" type="button" onclick="refreshOperationsConsole()">Refresh</button>
+            </div>
+          </header>
+
+          <div class="admin-grid">
+            <section class="card">
+              <div class="card__body">
+                <h3>Ingestion Jobs</h3>
+                <div id="ingestionConsole" class="admin-table" aria-live="polite"></div>
+              </div>
+            </section>
+            <section class="card">
+              <div class="card__body">
+                <h3>Connectors</h3>
+                <div id="connectorConsole" class="admin-table" aria-live="polite"></div>
+                <button class="btn btn--outline btn--sm" type="button" onclick="openConnectorModal()">Register Connector</button>
+              </div>
+            </section>
+            <section class="card">
+              <div class="card__body">
+                <h3>API Keys</h3>
+                <div id="apiKeyConsole" class="admin-table" aria-live="polite"></div>
+                <button class="btn btn--outline btn--sm" type="button" onclick="openApiKeyModal()">Create API Key</button>
+              </div>
+            </section>
+            <section class="card">
+              <div class="card__body">
+                <h3>Intake Forms</h3>
+                <div id="formConsole" class="admin-table" aria-live="polite"></div>
+              </div>
+            </section>
+          </div>
         </section>
       </div>
     </main>
@@ -616,6 +827,94 @@
       </div>
     </div>
   </div>
+
+    <div class="modal hidden" id="connectorModal" role="dialog" aria-modal="true" aria-labelledby="connectorModalTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="connectorModalTitle">Register Connector</h3>
+          <button class="modal-close" type="button" aria-label="Close" onclick="closeConnectorModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="connectorForm" class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="connectorName">Connector Name</label>
+              <input class="form-control" id="connectorName" type="text" placeholder="Gmail Outreach" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="connectorType">Type</label>
+              <select class="form-control" id="connectorType" required>
+                <option value="gmail">Gmail</option>
+                <option value="outlook">Outlook</option>
+                <option value="csv">CSV Import</option>
+                <option value="ics">Calendar (ICS)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="connectorStatus">Status</label>
+              <select class="form-control" id="connectorStatus">
+                <option value="connected">Connected</option>
+                <option value="pending">Pending Auth</option>
+                <option value="disabled">Disabled</option>
+              </select>
+            </div>
+            <div class="form-group form-group--full">
+              <label class="form-label" for="connectorSettings">Settings / Notes</label>
+              <textarea class="form-control" id="connectorSettings" rows="3" placeholder="Scopes, shared mailbox, token metadata"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" type="button" onclick="closeConnectorModal()">Cancel</button>
+          <button class="btn btn--primary" type="button" onclick="submitConnectorForm()">Save Connector</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="apiKeyModal" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="apiKeyModalTitle">Create API Key</h3>
+          <button class="modal-close" type="button" aria-label="Close" onclick="closeApiKeyModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="apiKeyForm" class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="apiKeyName">Key Label</label>
+              <input class="form-control" id="apiKeyName" type="text" placeholder="Partner Referral Form" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="apiKeyExpiry">Expires On</label>
+              <input class="form-control" id="apiKeyExpiry" type="date">
+            </div>
+            <fieldset class="form-group form-group--full">
+              <legend class="form-label">Scopes</legend>
+              <div class="checkbox-grid">
+                <label class="checkbox">
+                  <input type="checkbox" value="leads:write" checked>
+                  <span>Submit Leads</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" value="forms:submit" checked>
+                  <span>Submit Forms</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" value="leads:read">
+                  <span>Read Leads</span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="form-group form-group--full">
+              <label class="form-label" for="apiKeyOrigins">Allowed Origins (comma separated)</label>
+              <input class="form-control" id="apiKeyOrigins" type="text" placeholder="https://partner.hti.org">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" type="button" onclick="closeApiKeyModal()">Cancel</button>
+          <button class="btn btn--primary" type="button" onclick="submitApiKeyForm()">Generate Key</button>
+        </div>
+      </div>
+    </div>
 
   <script src="app.js"></script>
 </body>

@@ -3,11 +3,11 @@ import { listCorporateTargets, countHighPriorityTargets } from '../repositories/
 import { listMilestones, summarizeMilestones } from '../repositories/milestones.js';
 import { listActivities } from '../repositories/activities.js';
 
-export function buildDashboardSummary() {
-  const leadSummary = summarizeLeads();
+export function buildDashboardSummary({ workspaceId } = {}) {
+  const leadSummary = summarizeLeads({ workspaceId });
   const milestones = listMilestones();
   const corporateTargets = listCorporateTargets();
-  const activeLeads = listLeads({});
+  const activeLeads = listLeads({ workspaceId });
 
   const highPriorityTargets = countHighPriorityTargets();
 
@@ -47,14 +47,20 @@ export function buildDashboardSummary() {
       conversions: leadSummary.conversions,
       highPriorityTargets,
       newLeadsThisWeek,
-      avgLeadAge
+      avgLeadAge,
+      avgStageDuration: leadSummary.avgStageDuration,
+      forecastEquipment: Math.round(leadSummary.forecastEquipment || 0),
+      topPersona: leadSummary.topPersona?.name || null
     },
     equipmentByType,
     leadSources,
     grantProgressPercent,
     milestoneCounts: summarizeMilestones(),
     recentActivities: listActivities(12),
-    corporateTargets
+    corporateTargets,
+    pipelineBreakdown: leadSummary.pipelineBreakdown,
+    personaBreakdown: leadSummary.personaBreakdown,
+    topPersona: leadSummary.topPersona
   };
 }
 
