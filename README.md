@@ -45,9 +45,29 @@ npm run sync:reddit
 
 # catalog.data.gov search (configurable query)
 npm run sync:datagov
+
+# GSA surplus auctions feed
+npm run sync:gsa
+
+# SAM.gov opportunities (requires HTI_SAM_API_KEY)
+npm run sync:sam
 ```
 
 Each script is polite (throttled, user-agent tagged) and stores cursors so they can run on a schedule without re-ingesting older items.
+
+Suggested `.env` additions when you expand ingest sources:
+
+```
+HTI_GSA_API_KEY=DEMO_KEY              # request your own from gsa.gov for higher quotas
+HTI_GSA_PER_PAGE=20
+HTI_GSA_STATES=NC,SC,VA
+HTI_SAM_API_KEY=your_sam_api_key      # https://sam.gov/content/api
+HTI_SAM_KEYWORDS="technology donation"
+HTI_SAM_AGENCY="DEPT OF DEFENSE"
+HTI_SAM_MAX_RESULTS=25
+```
+
+If a key is missing the corresponding ingest script exits gracefully so you can enable feeds incrementally.
 
 ## API Endpoints
 
@@ -70,6 +90,8 @@ Each script is polite (throttled, user-agent tagged) and stores cursors so they 
 2. Set environment variables above (and add API keys when you obtain them, e.g. SAM.gov).
 3. Point the frontend (`index.html`) at the API domain by setting `window.__HTI_API_BASE__` before loading `app.js` if it’s not under the same origin.
 4. Schedule ingestion scripts via cron/worker.
+
+Tip: you can persist a custom API base in the browser console with `localStorage.setItem('hti-api-base', 'https://api.example.com')` and reload.
 
 ## Extending
 

@@ -39,3 +39,9 @@ export function setCursor(source, cursor) {
 export function getCursor(source) {
   return db.data.ingestCursor[source]?.cursor ?? null;
 }
+
+export function listSyncLog(limit = 50) {
+  const entries = [...getLogCollection()];
+  entries.sort((a, b) => new Date(b.run_started_at || 0) - new Date(a.run_started_at || 0));
+  return entries.slice(0, limit);
+}

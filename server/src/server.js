@@ -8,6 +8,7 @@ import { listLeads, createLead, updateLead, deleteLead, getLeadById } from './re
 import { listCorporateTargets, upsertCorporateTarget } from './repositories/corporateTargets.js';
 import { listMilestones } from './repositories/milestones.js';
 import { listActivities, addActivity } from './repositories/activities.js';
+import { listSyncLog } from './repositories/sync.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,7 +27,8 @@ app.get('/api/bootstrap', (req, res) => {
     corporateTargets: listCorporateTargets(),
     grantMilestones: listMilestones(),
     activities: listActivities(20),
-    dashboard: buildDashboardSummary()
+    dashboard: buildDashboardSummary(),
+    syncLog: listSyncLog(20)
   });
 });
 
@@ -111,6 +113,11 @@ app.get('/api/milestones', (req, res) => {
 app.get('/api/activities', (req, res) => {
   const limit = Number(req.query.limit) || 20;
   res.json(listActivities(limit));
+});
+
+app.get('/api/sync-log', (req, res) => {
+  const limit = Number(req.query.limit) || 50;
+  res.json(listSyncLog(limit));
 });
 
 app.use((err, req, res, next) => {

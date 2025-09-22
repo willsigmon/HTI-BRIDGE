@@ -267,6 +267,7 @@ function hydrateStateFromBootstrap(payload = {}) {
   const milestonesData = payload.grantMilestones ?? payload.grant_milestones ?? [];
   const activitiesData = payload.activities ?? [];
   const dashboard = payload.dashboard ?? {};
+  const syncLog = payload.syncLog ?? payload.sync_log ?? [];
 
   const totalEquipment = leadsData.reduce((sum, lead) => sum + (lead.estimatedQuantity ?? lead.estimated_quantity ?? 0), 0);
 
@@ -275,6 +276,7 @@ function hydrateStateFromBootstrap(payload = {}) {
     corporateTargets: corporateData,
     grantMilestones: milestonesData,
     activities: activitiesData,
+    syncLog,
     analytics: {
       baselineActiveLead: dashboard.metrics?.activeLeads ?? dashboard.metrics?.active_leads ?? leadsData.length,
       baselineEquipment: dashboard.metrics?.totalEquipment ?? dashboard.metrics?.total_equipment ?? totalEquipment,
@@ -635,6 +637,7 @@ function renderTopOpportunity() {
 function renderActionCenter() {
   const followUpContainer = document.getElementById('followUpQueue');
   const grantContainer = document.getElementById('grantAlertsList');
+  const syncContainer = document.getElementById('syncLogList');
 
   if (followUpContainer) {
     const upcoming = state.leads
@@ -744,6 +747,44 @@ function renderActionCenter() {
         .join('');
     }
   }
+
+  if (syncContainer) {
+    const entries = (state.syncLog || []).slice(0, 5);
+    if (!entries.length) {
+      syncContainer.innerHTML = `
+        <li class="action-item">
+          <div>
+            <p class="action-item__title">No syncs recorded yet</p>
+            <p class="section-subtitle">Run one of the ingestion scripts to populate this timeline.</p>
+          </div>
+        </li>
+      `;
+    } else {
+      syncContainer.innerHTML = entries
+        .map((entry) => {
+          const statusClass = entry.success ? 'action-item' : 'action-item action-item--overdue';
+          const tagClass = entry.success ? 'tag' : 'tag tag--danger';
+          const runEnded = entry.run_completed_at ? formatDate(entry.run_completed_at) : 'In progress';
+          return `
+            <li class="${statusClass}">
+              <div>
+                <p class="action-item__title">${escapeHtml(entry.source || 'Sync')}</p>
+                <div class="action-item__meta">
+                  <span>📅 ${formatDate(entry.run_started_at)}</span>
+                  <span>🕒 ${escapeHtml(runEnded)}</span>
+                  <span>📦 ${formatNumber(entry.item_count || 0)} items</span>
+                </div>
+                ${entry.notes ? `<p class="snapshot-feature__description">${escapeHtml(entry.notes)}</p>` : ''}
+              </div>
+              <div class="action-item__cta">
+                <span class="${tagClass}">${entry.success ? 'success' : 'error'}</span>
+              </div>
+            </li>
+          `;
+        })
+        .join('');
+    }
+  }
 }
 
 function updateCharts() {
@@ -752,8 +793,8 @@ function updateCharts() {
   const leadSourceCanvas = document.getElementById('leadSourceChart');
   const equipmentCanvas = document.getElementById('equipmentChart');
 
-  const leadSourceCounts = aggregateBy(state.leads, 'source');
-  const equipmentTotals = aggregateEquipmentTotals(state.leads);
+  const leadSourceCounts = state.dashboard?.leadSources || aggregateBy(state.leads, 'source');
+  const equipmentTotals = state.dashboard?.equipmentByType || aggregateEquipmentTotals(state.leads);
 
   if (leadSourceCanvas) {
     const data = {
@@ -1810,6 +1851,7 @@ function loadState() {
       corporateTargets: Array.isArray(parsed.corporateTargets) ? parsed.corporateTargets : clone(htiData.corporateTargets),
       grantMilestones: Array.isArray(parsed.grantMilestones) ? parsed.grantMilestones : clone(htiData.grantMilestones),
       activities: Array.isArray(parsed.activities) ? parsed.activities : clone(htiData.activities),
+      syncLog: Array.isArray(parsed.syncLog) ? parsed.syncLog : [],
       analytics: {
         baselineActiveLead: parsed.analytics?.baselineActiveLead ?? htiData.analytics.baselineActiveLead,
         baselineEquipment: parsed.analytics?.baselineEquipment ?? htiData.analytics.baselineEquipment,
@@ -1830,6 +1872,7 @@ function createDefaultState() {
     corporateTargets: clone(htiData.corporateTargets),
     grantMilestones: clone(htiData.grantMilestones),
     activities: clone(htiData.activities),
+    syncLog: [],
     analytics: {
       baselineActiveLead: htiData.analytics.baselineActiveLead,
       baselineEquipment: htiData.analytics.baselineEquipment,
@@ -2138,5 +2181,6 @@ Object.assign(window, {
   downloadReportPDF,
   logSampleActivity,
   switchToTab,
-  resetState
+  resetState,
+  refreshFromApi
 });

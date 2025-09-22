@@ -11,6 +11,9 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="style.css">
+  <script>
+    window.__HTI_API_BASE__ = localStorage.getItem('hti-api-base') || '/api';
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -176,6 +179,18 @@
                     <button class="btn btn--outline btn--sm" type="button" onclick="switchToTab('grants')">Grant tracker</button>
                   </div>
                   <ul class="action-list" id="grantAlertsList" aria-live="polite"></ul>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Ingestion History</h3>
+                      <p class="section-subtitle">Most recent automations and manual syncs.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="refreshFromApi()">Refresh</button>
+                  </div>
+                  <ul class="action-list" id="syncLogList" aria-live="polite"></ul>
                 </div>
               </article>
             </section>
