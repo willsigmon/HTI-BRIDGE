@@ -37,7 +37,36 @@ const defaultData = {
   connectors: [],
   interactionEvents: [],
   calendarEvents: [],
-  tasks: []
+  tasks: [],
+  settings: {
+    personas: {
+      enabled: {
+        'Corporate IT Partner': true,
+        'Tech Refresh Donor': true,
+        'Government Surplus': true,
+        'Government Procurement': true,
+        'Healthcare System': true,
+        'Education Partner': true,
+        'Logistics Hotshot': true
+      },
+      weights: {
+        'Corporate IT Partner': 1,
+        'Tech Refresh Donor': 1,
+        'Government Surplus': 1,
+        'Government Procurement': 1,
+        'Healthcare System': 1,
+        'Education Partner': 1,
+        'Logistics Hotshot': 1
+      }
+    },
+    assignment: {
+      defaultOwnerId: 'hti-outreach'
+    },
+    preferences: {
+      enableMap: true,
+      enableAutomations: true
+    }
+  }
 };
 
 function initDatabase() {

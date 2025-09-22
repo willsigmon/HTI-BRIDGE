@@ -36,6 +36,40 @@ const PERSONA_TAG_DEFINITIONS = {
   'Education Partner': ['education', 'community'],
   'Logistics Hotshot': ['logistics', 'fast-turn']
 };
+const DEFAULT_SETTINGS = {
+  personas: {
+    enabled: {
+      'Corporate IT Partner': true,
+      'Tech Refresh Donor': true,
+      'Government Surplus': true,
+      'Government Procurement': true,
+      'Healthcare System': true,
+      'Education Partner': true,
+      'Logistics Hotshot': true
+    },
+    weights: {
+      'Corporate IT Partner': 1,
+      'Tech Refresh Donor': 1,
+      'Government Surplus': 1,
+      'Government Procurement': 1,
+      'Healthcare System': 1,
+      'Education Partner': 1,
+      'Logistics Hotshot': 1
+    }
+  },
+  assignment: {
+    defaultOwnerId: 'hti-outreach'
+  },
+  preferences: {
+    enableMap: true,
+    enableAutomations: true
+  }
+};
+const USER_DIRECTORY = {
+  'hti-admin': 'HTI Admin',
+  'hti-outreach': 'Outreach Lead',
+  'hti-fellow': 'HUBZone Fellow'
+};
 const UPCOMING_THRESHOLD_DAYS = 14;
 
 const API_BASE_URL = window.__HTI_API_BASE__ || '/api';
@@ -255,6 +289,7 @@ function initializeApp() {
   setupDataHubControls();
   setupAutomationControls();
   setupOperationsConsoleControls();
+  setupSettingsControls();
   renderAll();
   updateLastRefreshed();
   setTimeout(updateCharts, 250);
@@ -277,6 +312,7 @@ function renderAll() {
   renderAutomationStudio();
   renderMapView();
   renderOperationsConsole();
+  renderSettingsPanel();
   renderGrantMilestones();
   renderGrantRoadmap();
   updateComplianceHealth();
@@ -353,6 +389,7 @@ function hydrateStateFromBootstrap(payload = {}) {
   const analyticsPayload = payload.analytics ?? {};
   const mapPoints = payload.map?.points ?? payload.mapPoints ?? [];
   const interactionsData = payload.interactions ?? [];
+  const settingsData = payload.settings ?? null;
 
   const totalEquipment = leadsData.reduce((sum, lead) => sum + (lead.estimatedQuantity ?? lead.estimated_quantity ?? 0), 0);
 
@@ -386,6 +423,7 @@ function hydrateStateFromBootstrap(payload = {}) {
       topPersona: analyticsPayload.leads?.topPersona || null,
       lastUpdatedAt: new Date().toISOString()
     },
+    settings: settingsData ? mergeSettings(clone(DEFAULT_SETTINGS), settingsData) : state.settings || clone(DEFAULT_SETTINGS),
     serverAnalytics: analyticsPayload,
     dashboard
   };
@@ -561,7 +599,9 @@ function populatePersonaFilter() {
     if (lead.persona) personas.add(lead.persona);
   });
 
-  const personaOptions = Array.from(personas).sort((a, b) => a.localeCompare(b));
+  const personaOptions = Array.from(personas)
+    .filter((persona) => state.settings?.personas?.enabled?.[persona] !== false)
+    .sort((a, b) => a.localeCompare(b));
   const previousValue = filters.persona;
 
   personaFilter.innerHTML = [
@@ -639,6 +679,21 @@ function setupOperationsConsoleControls() {
     refreshOperationsConsole();
   } else {
     renderOperationsConsole();
+  }
+}
+
+function setupSettingsControls() {
+  const personaForm = document.getElementById('personaSettingsForm');
+  if (personaForm) {
+    personaForm.addEventListener('submit', (event) => event.preventDefault());
+  }
+  const preferencesForm = document.getElementById('preferencesForm');
+  if (preferencesForm) {
+    preferencesForm.addEventListener('submit', (event) => event.preventDefault());
+  }
+  const apiBaseForm = document.getElementById('apiBaseForm');
+  if (apiBaseForm) {
+    apiBaseForm.addEventListener('submit', (event) => event.preventDefault());
   }
 }
 
@@ -1430,6 +1485,19 @@ function renderAutomationStudio() {
   const followUpInput = document.getElementById('automationFollowupDays');
   if (!listEl || !tasksEl || !pipelineSelect || !stageSelect || !followUpInput) return;
 
+  if (state.settings?.preferences?.enableAutomations === false) {
+    listEl.innerHTML = '<div class="empty-state"><p>Automation Studio is disabled in settings.</p></div>';
+    tasksEl.innerHTML = '<div class="empty-state"><p>Enable automations in Settings to manage follow-up flows.</p></div>';
+    pipelineSelect.disabled = true;
+    stageSelect.disabled = true;
+    followUpInput.disabled = true;
+    return;
+  }
+
+  pipelineSelect.disabled = false;
+  stageSelect.disabled = false;
+  followUpInput.disabled = false;
+
   const pipelines = state.pipelines ?? [];
   if (!pipelines.length) {
     pipelineSelect.innerHTML = '<option value="" disabled selected>No pipelines configured</option>';
@@ -1657,6 +1725,13 @@ function renderMapView() {
   const summaryEl = document.getElementById('mapSummary');
   const routesEl = document.getElementById('routeList');
   if (!mapContainer || !summaryEl || !routesEl) return;
+
+  if (state.settings?.preferences?.enableMap === false) {
+    mapContainer.innerHTML = '<div class="empty-state"><p>Map is disabled in settings.</p></div>';
+    summaryEl.innerHTML = '';
+    routesEl.innerHTML = '<div class="empty-state"><p>Enable the map in Settings to view routes.</p></div>';
+    return;
+  }
 
   const points = (state.mapPoints && state.mapPoints.length ? state.mapPoints : deriveMapPointsFromLeads()).slice(0, 250);
 
@@ -2063,6 +2138,167 @@ async function copyFormEmbed(id) {
   }
 }
 
+function renderSettingsPanel() {
+  const personaForm = document.getElementById('personaSettingsForm');
+  const ownerSelect = document.getElementById('defaultOwnerSelect');
+  const toggleMap = document.getElementById('toggleMap');
+  const toggleAutomations = document.getElementById('toggleAutomations');
+  const apiBaseInput = document.getElementById('apiBaseInput');
+
+  const settings = state.settings || clone(DEFAULT_SETTINGS);
+
+  if (personaForm) {
+    const personas = new Set([
+      ...PERSONA_BUCKETS,
+      ...Object.keys(settings.personas?.enabled || {})
+    ]);
+    const rows = Array.from(personas)
+      .sort((a, b) => a.localeCompare(b))
+      .map((persona) => {
+        const enabled = settings.personas?.enabled?.[persona] !== false;
+        const weight = settings.personas?.weights?.[persona] ?? 1;
+        return `
+          <tr data-persona-row="${escapeHtml(persona)}">
+            <th scope="row">${escapeHtml(persona)}</th>
+            <td>
+              <label class="checkbox checkbox--inline">
+                <input type="checkbox" ${enabled ? 'checked' : ''} data-persona-enabled="${escapeHtml(persona)}">
+                <span>Enabled</span>
+              </label>
+            </td>
+            <td>
+              <input type="number" step="0.1" min="0" max="5" value="${escapeHtml(weight)}" data-persona-weight="${escapeHtml(persona)}" class="form-control">
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    personaForm.innerHTML = `
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Status</th>
+            <th>Weight</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  if (ownerSelect) {
+    ownerSelect.value = settings.assignment?.defaultOwnerId || 'hti-outreach';
+  }
+  if (toggleMap) {
+    toggleMap.checked = settings.preferences?.enableMap !== false;
+  }
+  if (toggleAutomations) {
+    toggleAutomations.checked = settings.preferences?.enableAutomations !== false;
+  }
+  if (apiBaseInput) {
+    apiBaseInput.value = localStorage.getItem('hti-api-base') || API_BASE_URL;
+  }
+}
+
+async function refreshSettingsFromApi() {
+  if (!apiAvailable) {
+    createToast('Offline mode', 'Using locally cached settings.', 'warning');
+    renderSettingsPanel();
+    return;
+  }
+  try {
+    const response = await apiRequest('/settings', { method: 'GET' });
+    const payload = await response.json();
+    applySettingsPatch(payload, false);
+    createToast('Settings synced', 'Fetched latest configuration from the API.', 'success');
+  } catch (error) {
+    console.error('Failed to fetch settings', error);
+    createToast('Sync failed', error.message || 'Unable to load settings', 'error');
+  }
+}
+
+async function savePersonaSettings() {
+  const personaForm = document.getElementById('personaSettingsForm');
+  if (!personaForm) return;
+  const enabled = {};
+  const weights = {};
+  personaForm.querySelectorAll('[data-persona-row]').forEach((row) => {
+    const persona = row.getAttribute('data-persona-row');
+    const checkbox = row.querySelector(`[data-persona-enabled="${persona}"]`);
+    const weightInput = row.querySelector(`[data-persona-weight="${persona}"]`);
+    if (!persona) return;
+    enabled[persona] = checkbox ? checkbox.checked : true;
+    const weight = Number(weightInput?.value ?? 1);
+    weights[persona] = Number.isFinite(weight) && weight > 0 ? weight : 1;
+  });
+
+  const patch = { personas: { enabled, weights } };
+  await persistSettingsPatch(patch, 'Persona settings updated', 'Saved persona preferences locally.');
+}
+
+async function savePreferenceSettings() {
+  const ownerSelect = document.getElementById('defaultOwnerSelect');
+  const toggleMap = document.getElementById('toggleMap');
+  const toggleAutomations = document.getElementById('toggleAutomations');
+  const patch = {
+    assignment: {
+      defaultOwnerId: ownerSelect?.value || 'hti-outreach'
+    },
+    preferences: {
+      enableMap: toggleMap?.checked !== false,
+      enableAutomations: toggleAutomations?.checked !== false
+    }
+  };
+  await persistSettingsPatch(patch, 'Preferences saved', 'Updated assignment and feature toggles.');
+}
+
+function saveApiBaseOverride() {
+  const input = document.getElementById('apiBaseInput');
+  if (!input) return;
+  const value = input.value.trim();
+  if (!value) {
+    createToast('Missing URL', 'Enter an API base URL before saving.', 'warning');
+    return;
+  }
+  localStorage.setItem('hti-api-base', value);
+  window.__HTI_API_BASE__ = value;
+  createToast('API base updated', 'Reload the page to use the new endpoint.', 'info');
+}
+
+function clearApiBaseOverride() {
+  localStorage.removeItem('hti-api-base');
+  window.__HTI_API_BASE__ = '/api';
+  const input = document.getElementById('apiBaseInput');
+  if (input) input.value = API_BASE_URL;
+  createToast('API base cleared', 'Using default relative API path.', 'success');
+}
+
+async function resetSettingsToDefaults() {
+  const confirmed = window.confirm('Reset all settings to defaults?');
+  if (!confirmed) return;
+  await persistSettingsPatch(clone(DEFAULT_SETTINGS), 'Settings reset', 'Restored default configuration.');
+}
+
+async function persistSettingsPatch(patch, successMessage, offlineMessage) {
+  if (apiAvailable) {
+    try {
+      await apiRequest('/settings', { method: 'PUT', body: patch });
+      await refreshSettingsFromApi();
+      createToast('Settings saved', successMessage, 'success');
+      return;
+    } catch (error) {
+      console.warn('API settings update failed, applying locally.', error);
+      createToast('Offline mode', offlineMessage, 'warning');
+      apiAvailable = false;
+    }
+  }
+
+  applySettingsPatch(patch, true);
+  createToast('Settings saved', offlineMessage, 'success');
+}
+
 function renderPipelineBoard() {
   const board = document.getElementById('pipelineBoard');
   if (!board) return;
@@ -2462,6 +2698,9 @@ function addLeadOffline(baseLead) {
     priority: baseLead.priority ?? calculatePriorityScore(baseLead)
   };
 
+  const defaultOwnerId = state.settings?.assignment?.defaultOwnerId || 'hti-outreach';
+  newLead.ownerId = baseLead.ownerId || defaultOwnerId;
+  newLead.ownerName = newLead.ownerName || lookupOwnerName(newLead.ownerId);
   assignPersonaMetadata(newLead);
   state.leads.unshift(newLead);
   addActivity({ text: `Lead logged: ${newLead.title} (${newLead.company || 'Unknown'})`, type: 'lead' });
@@ -3142,6 +3381,7 @@ function loadState() {
         topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null,
         lastUpdatedAt: parsed.analytics?.lastUpdatedAt ?? new Date().toISOString()
       },
+      settings: parsed.settings ? mergeSettings(clone(DEFAULT_SETTINGS), parsed.settings) : clone(DEFAULT_SETTINGS),
       serverAnalytics: parsed.serverAnalytics ?? {},
       dashboard: parsed.dashboard ?? {
         metrics: {},
@@ -3186,6 +3426,7 @@ function createDefaultState() {
       pipelineBreakdown: {},
       lastUpdatedAt: new Date().toISOString()
     },
+    settings: clone(DEFAULT_SETTINGS),
     serverAnalytics: {},
     dashboard: null
   };
@@ -3614,6 +3855,38 @@ function clone(data) {
   return JSON.parse(JSON.stringify(data));
 }
 
+function mergeSettings(target = {}, source = {}) {
+  const result = clone(target);
+  if (!source || typeof source !== 'object') return result;
+  for (const [key, value] of Object.entries(source)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      result[key] = mergeSettings(result[key] || {}, value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+function lookupOwnerName(ownerId) {
+  return USER_DIRECTORY[ownerId] || ownerId || 'CRM User';
+}
+
+function applySettingsPatch(patch, shouldPersist = false) {
+  state.settings = mergeSettings(state.settings || clone(DEFAULT_SETTINGS), patch);
+  state.leads.forEach(assignPersonaMetadata);
+  state.analytics.personaBreakdown = buildPersonaBreakdown(state.leads);
+  const topPersonaEntry = getTopPersona(state.analytics.personaBreakdown);
+  state.analytics.topPersona = topPersonaEntry
+    ? { name: topPersonaEntry[0], count: topPersonaEntry[1] }
+    : null;
+  if (shouldPersist && !apiAvailable) {
+    persistState(false);
+  }
+  renderSettingsPanel();
+  renderAll();
+}
+
 function createToast(title, message, variant = 'info', timeout = 4000) {
   const stack = document.getElementById('toastStack');
   if (!stack) return;
@@ -3721,5 +3994,11 @@ Object.assign(window, {
   logSampleActivity,
   switchToTab,
   resetState,
-  refreshFromApi
+  refreshFromApi,
+  refreshSettingsFromApi,
+  savePersonaSettings,
+  savePreferenceSettings,
+  saveApiBaseOverride,
+  clearApiBaseOverride,
+  resetSettingsToDefaults
 });

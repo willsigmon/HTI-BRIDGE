@@ -5,6 +5,7 @@ import { assignLeadToStage, getDefaultStageId, getStageById } from './pipelines.
 import { runLeadAutomations } from '../services/automationEngine.js';
 import { logAuditEvent } from './audit.js';
 import { getUserById } from './security.js';
+import { getSettings } from './settings.js';
 
 const ACTIVE_STATUSES = new Set(['New', 'Researching', 'Initial Contact', 'Qualified', 'Proposal Sent', 'Negotiating']);
 const CLOSED_STATUSES = new Set(['Committed', 'Donated', 'Not Interested', 'Invalid']);
@@ -173,7 +174,8 @@ export function createLead(payload, { actorId = 'system' } = {}) {
   const stageId = payload.stageId || (pipelineId ? getDefaultStageId(pipelineId) : null);
   const stage = stageId ? getStageById(stageId) : null;
   const status = payload.status || 'New';
-  const ownerId = payload.ownerId || 'hti-outreach';
+  const settings = getSettings();
+  const ownerId = payload.ownerId || settings?.assignment?.defaultOwnerId || 'hti-outreach';
   const owner = getUserById(ownerId);
   const priority = payload.priority ?? calculatePriorityScore(payload);
   const probability = payload.probability ?? stage?.probability ?? probabilityFromStatus(status);
@@ -260,7 +262,8 @@ export function updateLead(id, updates, { actorId = 'system' } = {}) {
   next.priority = updates.priority ?? existing.priority ?? calculatePriorityScore(next);
   next.followUpDate = updates.followUpDate ?? existing.followUpDate ?? null;
   next.notes = updates.notes ?? existing.notes;
-  next.ownerId = updates.ownerId || existing.ownerId;
+  const settings = getSettings();
+  next.ownerId = updates.ownerId || existing.ownerId || settings?.assignment?.defaultOwnerId || 'hti-outreach';
   const owner = getUserById(next.ownerId);
   next.ownerName = owner?.name || existing.ownerName;
   next.workspaceId = resolveWorkspaceId(existing.workspaceId || updates.workspaceId);
@@ -443,6 +446,8 @@ export function upsertMultiple(leads) {
   const collection = getLeadsCollection();
   const byId = new Map(collection.map((lead) => [lead.id, lead]));
   const now = new Date().toISOString();
+  const settings = getSettings();
+  const defaultOwnerId = settings?.assignment?.defaultOwnerId || 'hti-outreach';
 
   for (const lead of leads) {
     const id = lead.id || generateLeadId();
@@ -471,7 +476,9 @@ export function upsertMultiple(leads) {
       workspaceId,
       pipelineId,
       stageId,
-      probability: lead.probability ?? stage?.probability ?? probabilityFromStatus(lead.status)
+      probability: lead.probability ?? stage?.probability ?? probabilityFromStatus(lead.status),
+      ownerId: lead.ownerId || existing?.ownerId || defaultOwnerId,
+      ownerName: existing?.ownerName || getUserById(lead.ownerId || existing?.ownerId || defaultOwnerId)?.name || 'Outreach Lead'
     };
 
     const personaData = categorizeLeadPersona(record);
@@ -573,6 +580,10 @@ function categorizeLeadPersona(lead) {
 
   const context = { source, equipment, company, text, location, timeline, priority, followUpDays };
 
+  const settings = getSettings();
+  const enabledMap = settings?.personas?.enabled || {};
+  const weightMap = settings?.personas?.weights || {};
+
   let persona = DEFAULT_PERSONA;
   for (const rule of PERSONA_RULES) {
     if (rule.predicate(context)) {
@@ -588,6 +599,10 @@ function categorizeLeadPersona(lead) {
     persona = LOGISTICS_PERSONA;
   }
 
+  if (enabledMap[persona] === false) {
+    persona = DEFAULT_PERSONA;
+  }
+
   const definition = PERSONA_DEFINITIONS[persona] || PERSONA_DEFINITIONS[DEFAULT_PERSONA];
   const tags = new Set(definition?.tags || []);
 
@@ -596,6 +611,11 @@ function categorizeLeadPersona(lead) {
   if (timeline.includes('grant')) tags.add('grant');
   if (source) tags.add(`source:${source}`);
   if (equipment) tags.add(`equipment:${equipment.replace(/\s+/g, '-')}`);
+
+  const weight = Number(weightMap[persona] ?? 1);
+  if (Number.isFinite(weight) && weight !== 1) {
+    tags.add(`weight:${weight}`);
+  }
 
   tags.add(`persona:${persona.toLowerCase().replace(/\s+/g, '-')}`);
 

@@ -80,6 +80,7 @@
           <button class="nav__tab" data-tab="map" role="tab" aria-selected="false">Field Ops Map</button>
           <button class="nav__tab" data-tab="grants" role="tab" aria-selected="false">Grant Compliance</button>
           <button class="nav__tab" data-tab="admin" role="tab" aria-selected="false">Operations Console</button>
+          <button class="nav__tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
           <button class="nav__tab" data-tab="reports" role="tab" aria-selected="false">Reports</button>
         </div>
       </div>
@@ -628,6 +629,76 @@
               <div class="card__body">
                 <h3>Intake Forms</h3>
                 <div id="formConsole" class="admin-table" aria-live="polite"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="settings" class="tab-content" aria-labelledby="Settings dashboard">
+          <header class="section-header">
+            <div>
+              <h2>Settings Dashboard</h2>
+              <p class="section-subtitle">Control personas, defaults, and feature toggles for NewDash.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn--secondary" type="button" onclick="refreshSettingsFromApi()">Sync settings</button>
+              <button class="btn btn--outline" type="button" onclick="resetSettingsToDefaults()">Reset to defaults</button>
+            </div>
+          </header>
+
+          <div class="settings-grid">
+            <section class="card">
+              <div class="card__body">
+                <h3>Persona Buckets</h3>
+                <p class="section-subtitle">Enable or disable personas and adjust weighting for prioritization.</p>
+                <form id="personaSettingsForm" class="settings-form" aria-live="polite"></form>
+                <div class="form-actions">
+                  <button class="btn btn--primary" type="button" onclick="savePersonaSettings()">Save Personas</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__body">
+                <h3>Assignment &amp; Features</h3>
+                <form id="preferencesForm" class="settings-form">
+                  <div class="form-group">
+                    <label class="form-label" for="defaultOwnerSelect">Default Lead Owner</label>
+                    <select id="defaultOwnerSelect" class="form-control">
+                      <option value="hti-admin">HTI Admin</option>
+                      <option value="hti-outreach">Outreach Lead</option>
+                      <option value="hti-fellow">HUBZone Fellow</option>
+                    </select>
+                  </div>
+                  <label class="checkbox">
+                    <input type="checkbox" id="toggleMap">
+                    <span>Enable field ops map</span>
+                  </label>
+                  <label class="checkbox">
+                    <input type="checkbox" id="toggleAutomations">
+                    <span>Enable automation studio</span>
+                  </label>
+                  <div class="form-actions">
+                    <button class="btn btn--primary" type="button" onclick="savePreferenceSettings()">Save Preferences</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__body">
+                <h3>API Connection</h3>
+                <p class="section-subtitle">Override the API base for this browser if the dashboard is hosted separately.</p>
+                <form id="apiBaseForm" class="settings-form">
+                  <div class="form-group">
+                    <label class="form-label" for="apiBaseInput">API Base URL</label>
+                    <input class="form-control" id="apiBaseInput" type="url" placeholder="https://api.newdash.example.com">
+                  </div>
+                  <div class="form-actions">
+                    <button class="btn btn--primary" type="button" onclick="saveApiBaseOverride()">Set API Base</button>
+                    <button class="btn btn--outline" type="button" onclick="clearApiBaseOverride()">Use default</button>
+                  </div>
+                </form>
               </div>
             </section>
           </div>

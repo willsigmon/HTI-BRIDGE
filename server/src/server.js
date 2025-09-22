@@ -48,6 +48,7 @@ import {
   generateEmbedSnippet
 } from './repositories/forms.js';
 import { listAuditLog, summarizeAuditLog } from './repositories/audit.js';
+import { getSettings, updateSettings as saveSettings } from './repositories/settings.js';
 
 ensureDefaultPipelines();
 ensureDefaultJobs();
@@ -83,6 +84,7 @@ app.get('/api/bootstrap', requirePermission('leads:read'), (req, res) => {
     connectors: listConnectors({ workspaceId }),
     forms: listIntakeForms({ workspaceId }),
     interactions: listInteractionEvents({ limit: 200 }),
+    settings: getSettings(),
     analytics: {
       leads: summarizeLeads({ workspaceId }),
       pipeline: summarizePipelines(),
@@ -377,6 +379,20 @@ app.get('/api/forms/:id/embed', requirePermission('forms:read'), (req, res) => {
     return;
   }
   res.type('text/plain').send(generateEmbedSnippet(form));
+});
+
+app.get('/api/settings', requirePermission('settings:read'), (req, res) => {
+  res.json(getSettings());
+});
+
+app.put('/api/settings', requirePermission('settings:manage'), (req, res) => {
+  try {
+    const settings = saveSettings(req.body, { actorId: req.user.id });
+    res.json(settings);
+  } catch (error) {
+    console.error('Failed to update settings', error);
+    res.status(400).json({ error: 'Unable to update settings' });
+  }
 });
 
 app.get('/api/connectors', requirePermission('connectors:manage'), (req, res) => {

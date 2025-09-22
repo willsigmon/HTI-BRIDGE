@@ -7,6 +7,7 @@ import { ensureDefaultJobs } from '../src/repositories/admin.js';
 import { createLead } from '../src/repositories/leads.js';
 import { upsertCorporateTarget } from '../src/repositories/corporateTargets.js';
 import { addActivity } from '../src/repositories/activities.js';
+import { resetSettings } from '../src/repositories/settings.js';
 
 function resetData() {
   db.data.leads = [];
@@ -40,6 +41,7 @@ function seed() {
   bootstrapSecurity();
   ensureDefaultPipelines();
   ensureDefaultJobs();
+  resetSettings();
 
   sampleCorporateTargets.forEach((target) => {
     upsertCorporateTarget(target);

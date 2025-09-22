@@ -54,6 +54,7 @@ The service worker precaches core assets (`index.html`, `style.css`, `app.js`, i
 - **Automation Studio** – build stage-change automations that schedule follow-ups, log activities, and create task queues.
 - **Field Ops Map** – Leaflet map for routing pickups, with weighted markers and quick route summaries.
 - **Operations Console** – monitor ingestion jobs, register connectors, manage API keys, and grab embeddable intake forms.
+- **Settings Dashboard** – toggle personas, adjust weighting, set default owners, and manage feature switches without redeploying.
 - **PWA polish** – installable manifest, offline caching, and responsive layouts tuned for hubzonetech.org branding.
 
 ## Data Ingestion & Connectors

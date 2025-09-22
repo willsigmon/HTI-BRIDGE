@@ -18,7 +18,8 @@ const ROLE_PERMISSIONS = {
     'ingestion:manage',
     'security:manage',
     'forms:manage',
-    'connectors:manage'
+    'connectors:manage',
+    'settings:manage'
   ],
   manager: [
     'leads:read',
@@ -38,13 +39,15 @@ const ROLE_PERMISSIONS = {
     'leads:write',
     'contacts:read',
     'pipelines:read',
-    'analytics:view'
+    'analytics:view',
+    'settings:read'
   ],
   viewer: [
     'leads:read',
     'contacts:read',
     'pipelines:read',
-    'analytics:view'
+    'analytics:view',
+    'settings:read'
   ]
 };
 
