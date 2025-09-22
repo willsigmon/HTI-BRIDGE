@@ -20,6 +20,9 @@ const CLOSED_STATUSES = new Set([
 const CORPORATE_PRIORITY_RANK = { High: 3, Medium: 2, Low: 1 };
 const UPCOMING_THRESHOLD_DAYS = 14;
 
+const API_BASE_URL = window.__HTI_API_BASE__ || '/api';
+const API_TIMEOUT_MS = 8000;
+
 const htiData = {
   corporateTargets: [
     {
@@ -181,17 +184,24 @@ const filters = {
   corporatePriority: 'all'
 };
 
-let state = loadState() ?? createDefaultState();
+let apiAvailable = false;
+let state = createDefaultState();
 let charts = { leadSources: null, equipment: null };
 let leadStatusContext = { leadId: null };
 let corporateEditIndex = null;
 let openModalCount = 0;
 let storageAvailable = true;
 let topLeadId = null;
+let refreshTimer = null;
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
+  document.addEventListener('DOMContentLoaded', startApp);
 } else {
+  startApp();
+}
+
+async function startApp() {
+  await bootstrapData();
   initializeApp();
 }
 
@@ -204,6 +214,14 @@ function initializeApp() {
   renderAll();
   updateLastRefreshed();
   setTimeout(updateCharts, 250);
+
+  if (apiAvailable && !refreshTimer) {
+    refreshTimer = setInterval(() => {
+      if (apiAvailable) {
+        refreshFromApi();
+      }
+    }, 5 * 60 * 1000);
+  }
 }
 
 function renderAll() {
@@ -214,6 +232,103 @@ function renderAll() {
   renderGrantRoadmap();
   updateComplianceHealth();
   renderActivities();
+}
+
+async function bootstrapData() {
+  try {
+    const response = await apiRequest('/bootstrap', { method: 'GET' });
+    const payload = await response.json();
+    hydrateStateFromBootstrap(payload);
+    apiAvailable = true;
+  } catch (error) {
+    console.warn('API bootstrap unavailable, falling back to local dataset.', error);
+    apiAvailable = false;
+    state = loadState() ?? createDefaultState();
+  }
+}
+
+async function refreshFromApi() {
+  if (!apiAvailable) return;
+  try {
+    const response = await apiRequest('/bootstrap', { method: 'GET' });
+    const payload = await response.json();
+    hydrateStateFromBootstrap(payload);
+    apiAvailable = true;
+    renderAll();
+    updateLastRefreshed();
+  } catch (error) {
+    console.warn('Unable to refresh from API, retaining current client state.', error);
+  }
+}
+
+function hydrateStateFromBootstrap(payload = {}) {
+  const leadsData = payload.leads ?? [];
+  const corporateData = payload.corporateTargets ?? payload.corporate_targets ?? [];
+  const milestonesData = payload.grantMilestones ?? payload.grant_milestones ?? [];
+  const activitiesData = payload.activities ?? [];
+  const dashboard = payload.dashboard ?? {};
+
+  const totalEquipment = leadsData.reduce((sum, lead) => sum + (lead.estimatedQuantity ?? lead.estimated_quantity ?? 0), 0);
+
+  state = {
+    leads: leadsData,
+    corporateTargets: corporateData,
+    grantMilestones: milestonesData,
+    activities: activitiesData,
+    analytics: {
+      baselineActiveLead: dashboard.metrics?.activeLeads ?? dashboard.metrics?.active_leads ?? leadsData.length,
+      baselineEquipment: dashboard.metrics?.totalEquipment ?? dashboard.metrics?.total_equipment ?? totalEquipment,
+      lastUpdatedAt: new Date().toISOString()
+    },
+    dashboard
+  };
+}
+
+async function apiRequest(path, options = {}) {
+  const url = `${API_BASE_URL}${path}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  const headers = new Headers(options.headers || {});
+  let body = options.body;
+
+  if (body && typeof body === 'object' && !(body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+    body = JSON.stringify(body);
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      body,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const message = await safeParseError(response);
+      throw new Error(`API ${response.status}: ${message}`);
+    }
+
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      throw new Error('API request timed out');
+    }
+    throw error;
+  }
+}
+
+async function safeParseError(response) {
+  try {
+    const data = await response.json();
+    return data.error || JSON.stringify(data);
+  } catch (parseError) {
+    return response.statusText || 'Unknown error';
+  }
 }
 
 function bindGlobalHandlers() {
@@ -356,9 +471,12 @@ function updateThemeToggleLabel(button, theme) {
 }
 
 function renderDashboard() {
+  const dashboardMetrics = state.dashboard?.metrics || {};
+  const grantProgressPercent = state.dashboard?.grantProgressPercent;
+
   const activeLeads = state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status));
-  const totalEquipment = state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
-  const highPriorityTargets = state.corporateTargets.filter((target) => target.priority === 'High');
+  const totalEquipment = dashboardMetrics.totalEquipment ?? state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
+  const highPriorityTargets = state.corporateTargets.filter((target) => (target.priority || '').toLowerCase() === 'high');
 
   const activeLeadEl = document.getElementById('activeLead');
   const equipmentPipelineEl = document.getElementById('equipmentPipeline');
@@ -370,24 +488,27 @@ function renderDashboard() {
   const priorityHealthEl = document.getElementById('priorityHealth');
   const activeAlertsEl = document.getElementById('activeAlerts');
 
-  if (activeLeadEl) activeLeadEl.textContent = activeLeads.length;
+  const activeLeadCount = dashboardMetrics.activeLeads ?? activeLeads.length;
+  if (activeLeadEl) activeLeadEl.textContent = activeLeadCount;
   if (equipmentPipelineEl) equipmentPipelineEl.textContent = formatNumber(totalEquipment);
 
   const pipelineProgress = clamp((totalEquipment / DEVICE_GOAL) * 100, 0, 100);
   if (pipelineProgressBar) pipelineProgressBar.style.width = `${pipelineProgress}%`;
 
-  const grantProgress = calculateGrantProgress();
-  if (grantProgressEl) grantProgressEl.textContent = `${grantProgress.percent}%`;
-  if (grantProgressBar) grantProgressBar.style.width = `${grantProgress.percent}%`;
+  const grantProgress = Number.isFinite(grantProgressPercent)
+    ? grantProgressPercent
+    : calculateGrantProgress().percent;
+  if (grantProgressEl) grantProgressEl.textContent = `${grantProgress}%`;
+  if (grantProgressBar) grantProgressBar.style.width = `${grantProgress}%`;
 
-  if (highPriorityTargetsEl) highPriorityTargetsEl.textContent = highPriorityTargets.length;
+  if (highPriorityTargetsEl) highPriorityTargetsEl.textContent = dashboardMetrics.highPriorityTargets ?? highPriorityTargets.length;
 
   if (activeLeadTrendEl) {
     if (!state.analytics.baselineActiveLead) {
-      state.analytics.baselineActiveLead = activeLeads.length;
+      state.analytics.baselineActiveLead = activeLeadCount;
       persistState(false);
     }
-    const diff = activeLeads.length - state.analytics.baselineActiveLead;
+    const diff = activeLeadCount - state.analytics.baselineActiveLead;
     activeLeadTrendEl.textContent = diff === 0
       ? 'On pace with baseline'
       : `${diff > 0 ? '+' : ''}${diff} vs baseline`;
@@ -415,11 +536,11 @@ function renderLeadHealth() {
   const container = document.getElementById('leadHealth');
   if (!container) return;
 
-  const totalLeads = state.leads.length;
-  const activeLeads = state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status)).length;
-  const committed = state.leads.filter((lead) => lead.status === 'Committed').length;
-  const donated = state.leads.filter((lead) => lead.status === 'Donated').length;
-  const totalEquipment = state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
+  const dashboardMetrics = state.dashboard?.metrics || {};
+  const totalLeads = dashboardMetrics.totalLeads ?? state.leads.length;
+  const activeLeads = dashboardMetrics.activeLeads ?? state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status)).length;
+  const conversions = dashboardMetrics.conversions ?? state.leads.filter((lead) => ['Committed', 'Donated'].includes(lead.status)).length;
+  const totalEquipment = dashboardMetrics.totalEquipment ?? state.leads.reduce((total, lead) => total + (Number(lead.estimatedQuantity) || 0), 0);
   const avgQuantity = totalLeads === 0 ? 0 : Math.round(totalEquipment / totalLeads);
   const followUpsDue = calculateActiveAlerts();
 
@@ -428,7 +549,7 @@ function renderLeadHealth() {
     <span class="health-pill"><span class="health-pill__value">${formatNumber(activeLeads)}</span> active pipeline</span>
     <span class="health-pill"><span class="health-pill__value">${formatNumber(avgQuantity)}</span> avg devices</span>
     <span class="health-pill"><span class="health-pill__value">${formatNumber(followUpsDue)}</span> follow-ups due</span>
-    <span class="health-pill"><span class="health-pill__value">${formatNumber(committed + donated)}</span> conversions</span>
+    <span class="health-pill"><span class="health-pill__value">${formatNumber(conversions)}</span> conversions</span>
   `;
 }
 
@@ -436,7 +557,15 @@ function renderConversionSnapshot() {
   const container = document.getElementById('conversionSnapshot');
   if (!container) return;
 
-  if (!state.leads.length) {
+  const dashboardMetrics = state.dashboard?.metrics || {};
+  const totalLeads = dashboardMetrics.totalLeads ?? state.leads.length;
+  const conversions = dashboardMetrics.conversions ?? state.leads.filter((lead) => ['Committed', 'Donated'].includes(lead.status)).length;
+  const conversionRate = dashboardMetrics.conversionRate ?? (totalLeads ? Math.round((conversions / totalLeads) * 100) : 0);
+  const activeLeads = state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status));
+  const avgAge = dashboardMetrics.avgLeadAge ?? (activeLeads.length ? Math.round(activeLeads.reduce((sum, lead) => sum + leadAgeDays(lead), 0) / activeLeads.length) : 0);
+  const newThisWeek = dashboardMetrics.newLeadsThisWeek ?? state.leads.filter((lead) => leadWithinDays(lead, 7)).length;
+
+  if (!totalLeads) {
     container.innerHTML = `
       <div class="snapshot-metric">
         <span class="snapshot-metric__label">Pipeline</span>
@@ -447,18 +576,11 @@ function renderConversionSnapshot() {
     return;
   }
 
-  const totalLeads = state.leads.length;
-  const conversions = state.leads.filter((lead) => lead.status === 'Committed' || lead.status === 'Donated');
-  const conversionRate = totalLeads ? Math.round((conversions.length / totalLeads) * 100) : 0;
-  const activeLeads = state.leads.filter((lead) => ACTIVE_STATUSES.has(lead.status));
-  const avgAge = activeLeads.length ? Math.round(activeLeads.reduce((sum, lead) => sum + leadAgeDays(lead), 0) / activeLeads.length) : 0;
-  const newThisWeek = state.leads.filter((lead) => leadWithinDays(lead, 7)).length;
-
   container.innerHTML = `
     <div class="snapshot-metric">
       <span class="snapshot-metric__label">Conversion rate</span>
       <span class="snapshot-metric__value">${conversionRate}%</span>
-      <span class="snapshot-metric__delta">${formatNumber(conversions.length)} of ${formatNumber(totalLeads)} opportunities</span>
+      <span class="snapshot-metric__delta">${formatNumber(conversions)} of ${formatNumber(totalLeads)} opportunities</span>
     </div>
     <div class="snapshot-metric">
       <span class="snapshot-metric__label">Avg days active</span>
@@ -988,7 +1110,7 @@ function closeAddLeadModal() {
   unlockModal();
 }
 
-function addLead() {
+async function addLead() {
   const title = getInputValue('leadTitle');
   const company = getInputValue('leadCompany');
   const source = getInputValue('leadSource');
@@ -998,8 +1120,7 @@ function addLead() {
     return;
   }
 
-  const newLead = {
-    id: generateLeadId(),
+  const baseLead = {
     date: new Date().toISOString().split('T')[0],
     title,
     company,
@@ -1015,16 +1136,22 @@ function addLead() {
     potentialValue: 'Medium'
   };
 
-  newLead.priority = calculatePriorityScore(newLead);
+  if (apiAvailable) {
+    try {
+      const response = await apiRequest('/leads', { method: 'POST', body: baseLead });
+      await response.json();
+      await refreshFromApi();
+      closeAddLeadModal();
+      createToast('Lead added', `${title} captured via API.`, 'success');
+      return;
+    } catch (error) {
+      console.warn('API addLead failed, switching to offline mode.', error);
+      createToast('Offline mode', 'API unavailable—storing lead locally.', 'warning');
+      apiAvailable = false;
+    }
+  }
 
-  state.leads.unshift(newLead);
-  addActivity({ text: `Lead logged: ${newLead.title} (${newLead.company})`, type: 'lead' });
-  persistState();
-
-  renderLeadsTable();
-  renderDashboard();
-  closeAddLeadModal();
-  createToast('Lead added', `${newLead.title} captured successfully.`, 'success');
+  addLeadOffline(baseLead);
 }
 
 function generateLeadId() {
@@ -1033,6 +1160,23 @@ function generateLeadId() {
     .filter((value) => !Number.isNaN(value));
   const maxId = numericIds.length ? Math.max(...numericIds) : 0;
   return `L${String(maxId + 1).padStart(3, '0')}`;
+}
+
+function addLeadOffline(baseLead) {
+  const newLead = {
+    ...baseLead,
+    id: baseLead.id || generateLeadId(),
+    priority: baseLead.priority ?? calculatePriorityScore(baseLead)
+  };
+
+  state.leads.unshift(newLead);
+  addActivity({ text: `Lead logged: ${newLead.title} (${newLead.company || 'Unknown'})`, type: 'lead' });
+  persistState();
+
+  renderLeadsTable();
+  renderDashboard();
+  closeAddLeadModal();
+  createToast('Lead added', `${newLead.title} captured locally.`, 'success');
 }
 
 function openLeadStatusModal(leadId) {
@@ -1080,7 +1224,7 @@ function closeLeadStatusModal() {
   leadStatusContext.leadId = null;
 }
 
-function submitLeadStatusForm() {
+async function submitLeadStatusForm() {
   const leadId = leadStatusContext.leadId;
   if (!leadId) return;
 
@@ -1094,6 +1238,28 @@ function submitLeadStatusForm() {
   const priority = parseInt(getInputValue('leadPriorityInput'), 10);
   const followUpDate = getInputValue('leadFollowUpInput');
   const notes = getInputValue('leadNotesInput');
+
+  if (apiAvailable) {
+    try {
+      await apiRequest(`/leads/${encodeURIComponent(leadId)}`, {
+        method: 'PATCH',
+        body: {
+          status,
+          priority: Number.isNaN(priority) ? undefined : clamp(priority, 0, 100),
+          followUpDate: followUpDate || undefined,
+          notes
+        }
+      });
+      await refreshFromApi();
+      closeLeadStatusModal();
+      createToast('Lead updated', `${lead.title} marked as ${status}.`, 'success');
+      return;
+    } catch (error) {
+      console.warn('API lead update failed, updating locally.', error);
+      createToast('Offline mode', 'Saved locally until API reconnects.', 'warning');
+      apiAvailable = false;
+    }
+  }
 
   lead.status = status;
   lead.priority = Number.isNaN(priority) ? calculatePriorityScore(lead) : clamp(priority, 0, 100);
@@ -1176,7 +1342,7 @@ function viewTopLead() {
   viewLead(topLeadId);
 }
 
-function archiveLead(leadId) {
+async function archiveLead(leadId) {
   const index = state.leads.findIndex((lead) => lead.id === leadId);
   if (index === -1) {
     createToast('Lead not found', 'Unable to archive this record.', 'error');
@@ -1187,6 +1353,19 @@ function archiveLead(leadId) {
   const confirmed = window.confirm(`Archive "${lead.title}" from the active pipeline?`);
   if (!confirmed) return;
 
+  if (apiAvailable) {
+    try {
+      await apiRequest(`/leads/${encodeURIComponent(leadId)}`, { method: 'DELETE' });
+      await refreshFromApi();
+      createToast('Lead archived', `${lead.title} removed from active pipeline.`, 'info');
+      return;
+    } catch (error) {
+      console.warn('API archive failed, removing locally.', error);
+      createToast('Offline mode', 'Lead archived locally until API reconnects.', 'warning');
+      apiAvailable = false;
+    }
+  }
+
   state.leads.splice(index, 1);
   addActivity({ text: `Lead archived: ${lead.title}`, type: 'archive' });
   persistState();
@@ -1195,7 +1374,7 @@ function archiveLead(leadId) {
   createToast('Lead archived', `${lead.title} removed from active pipeline.`, 'info');
 }
 
-function completeFollowUp(leadId) {
+async function completeFollowUp(leadId) {
   const lead = state.leads.find((item) => item.id === leadId);
   if (!lead) {
     createToast('Lead not found', 'Unable to update follow-up.', 'error');
@@ -1205,6 +1384,22 @@ function completeFollowUp(leadId) {
   const nextDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
+
+  if (apiAvailable) {
+    try {
+      await apiRequest(`/leads/${encodeURIComponent(leadId)}/complete-follow-up`, {
+        method: 'POST',
+        body: { followUpDate: nextDate }
+      });
+      await refreshFromApi();
+      createToast('Follow-up rescheduled', `Next touchpoint set for ${formatDate(nextDate)}.`, 'success');
+      return;
+    } catch (error) {
+      console.warn('API follow-up completion failed, updating locally.', error);
+      createToast('Offline mode', 'Follow-up stored locally until API reconnects.', 'warning');
+      apiAvailable = false;
+    }
+  }
 
   lead.followUpDate = nextDate;
   addActivity({ text: `Follow-up completed for ${lead.title}`, type: 'update' });
@@ -1264,7 +1459,7 @@ function closeCorporateModal() {
   unlockModal();
 }
 
-function submitCorporateForm() {
+async function submitCorporateForm() {
   const name = getInputValue('corporateName');
   if (!name) {
     createToast('Missing company name', 'Please provide the company name.', 'warning');
@@ -1281,6 +1476,20 @@ function submitCorporateForm() {
     focus: getInputValue('corporateFocus'),
     notes: getInputValue('corporateNotes')
   };
+
+  if (apiAvailable) {
+    try {
+      await apiRequest('/corporate-targets', { method: 'POST', body: targetData });
+      await refreshFromApi();
+      closeCorporateModal();
+      createToast('Company saved', `${targetData.company} synced with API.`, 'success');
+      return;
+    } catch (error) {
+      console.warn('API corporate upsert failed, using offline store.', error);
+      createToast('Offline mode', 'Saved locally until API reconnects.', 'warning');
+      apiAvailable = false;
+    }
+  }
 
   if (corporateEditIndex !== null) {
     state.corporateTargets[corporateEditIndex] = {
@@ -1590,6 +1799,7 @@ function addActivity({ text, type = 'note', timestamp = new Date().toISOString()
 }
 
 function loadState() {
+  if (apiAvailable) return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -1604,7 +1814,8 @@ function loadState() {
         baselineActiveLead: parsed.analytics?.baselineActiveLead ?? htiData.analytics.baselineActiveLead,
         baselineEquipment: parsed.analytics?.baselineEquipment ?? htiData.analytics.baselineEquipment,
         lastUpdatedAt: parsed.analytics?.lastUpdatedAt ?? new Date().toISOString()
-      }
+      },
+      dashboard: parsed.dashboard ?? null
     };
   } catch (error) {
     console.warn('Failed to load saved state', error);
@@ -1623,12 +1834,13 @@ function createDefaultState() {
       baselineActiveLead: htiData.analytics.baselineActiveLead,
       baselineEquipment: htiData.analytics.baselineEquipment,
       lastUpdatedAt: new Date().toISOString()
-    }
+    },
+    dashboard: null
   };
 }
 
 function persistState(updateTimestamp = true) {
-  if (!storageAvailable) return;
+  if (apiAvailable || !storageAvailable) return;
   try {
     if (updateTimestamp) {
       state.analytics.lastUpdatedAt = new Date().toISOString();
@@ -1642,6 +1854,10 @@ function persistState(updateTimestamp = true) {
 }
 
 function resetState() {
+  if (apiAvailable) {
+    createToast('Reset unavailable', 'Live API data cannot be reset from the dashboard.', 'info');
+    return;
+  }
   const confirmed = window.confirm('Reset demo data and reload sample pipeline?');
   if (!confirmed) return;
 

@@ -1,0 +1,24 @@
+{
+  "name": "hti-newdash-api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src --exec node src/server.js",
+    "start": "node src/server.js",
+    "sync:reddit": "node scripts/ingest-reddit.js",
+    "sync:datagov": "node scripts/ingest-datagov.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "helmet": "7.1.0",
+    "morgan": "1.10.0",
+    "node-fetch": "3.3.2",
+    "lowdb": "7.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.5"
+  }
+}
