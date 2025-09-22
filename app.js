@@ -631,7 +631,7 @@ function updateCharts() {
   const equipmentCanvas = document.getElementById('equipmentChart');
 
   const leadSourceCounts = aggregateBy(state.leads, 'source');
-  const equipmentCounts = aggregateBy(state.leads, 'equipmentType');
+  const equipmentTotals = aggregateEquipmentTotals(state.leads);
 
   if (leadSourceCanvas) {
     const data = {
@@ -661,12 +661,14 @@ function updateCharts() {
   }
 
   if (equipmentCanvas) {
+    const labels = Object.keys(equipmentTotals);
+    const values = Object.values(equipmentTotals);
     const data = {
-      labels: Object.keys(equipmentCounts),
+      labels,
       datasets: [
         {
-          label: 'Equipment volume',
-          data: Object.values(equipmentCounts),
+          label: 'Devices in pipeline',
+          data: values,
           backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#2C6E49']
         }
       ]
@@ -1794,6 +1796,24 @@ function aggregateBy(collection, key) {
     acc[value] = (acc[value] || 0) + 1;
     return acc;
   }, {});
+}
+
+function aggregateEquipmentTotals(leadsCollection) {
+  if (!leadsCollection.length) return { 'No Data': 1 };
+
+  const totals = leadsCollection.reduce((acc, lead) => {
+    const type = lead.equipmentType || 'Other';
+    const quantity = Number(lead.estimatedQuantity) || 0;
+    acc[type] = (acc[type] || 0) + quantity;
+    return acc;
+  }, {});
+
+  const totalQuantity = Object.values(totals).reduce((sum, value) => sum + value, 0);
+  if (totalQuantity === 0) {
+    return { 'No Data': 1 };
+  }
+
+  return totals;
 }
 
 function clamp(value, min, max) {
