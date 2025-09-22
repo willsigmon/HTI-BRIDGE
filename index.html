@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTI Business Development CRM</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app" data-color-scheme="auto">
+    <div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
+
+    <header class="header" role="banner">
+      <div class="container">
+        <div class="header__top">
+          <div class="header__brand">
+            <h1>HTI Business Development CRM</h1>
+            <p class="header__tagline">HUBZone Technology Initiative &middot; Corporate Partnership Management</p>
+          </div>
+          <div class="header__tools">
+            <button class="btn btn--outline btn--sm" id="themeToggle" type="button">
+              <span class="theme-toggle__icon" aria-hidden="true">&#9788;</span>
+              <span class="theme-toggle__label">Toggle theme</span>
+            </button>
+            <button class="btn btn--outline btn--sm" type="button" onclick="resetState()">
+              <span aria-hidden="true">&#8635;</span>
+              <span>Reset data</span>
+            </button>
+            <div class="header__updated" id="lastRefreshed" aria-live="polite">Updated just now</div>
+          </div>
+        </div>
+
+        <div class="header__summary" role="group" aria-label="Organizational credentials">
+          <span class="status status--success">BBB A+ Rating</span>
+          <span class="status status--info">HUBZone Certified</span>
+          <span class="status status--warning">$600K Digital Champion Grant</span>
+        </div>
+
+        <div class="header__actions" role="group" aria-label="Quick actions">
+          <button class="btn btn--primary" type="button" onclick="openAddLeadModal()">Log New Lead</button>
+          <button class="btn btn--secondary" type="button" onclick="openCorporateModal()">Add Corporate Target</button>
+          <button class="btn btn--outline" type="button" onclick="generateReport()">Generate Executive Report</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav" aria-label="Primary">
+      <div class="container">
+        <div class="nav__tabs" role="tablist">
+          <button class="nav__tab nav__tab--active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
+          <button class="nav__tab" data-tab="corporate" role="tab" aria-selected="false">Corporate Pipeline</button>
+          <button class="nav__tab" data-tab="leads" role="tab" aria-selected="false">Lead Management</button>
+          <button class="nav__tab" data-tab="grants" role="tab" aria-selected="false">Grant Compliance</button>
+          <button class="nav__tab" data-tab="reports" role="tab" aria-selected="false">Reports</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main" role="main">
+      <div class="container">
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content tab-content--active" aria-labelledby="Dashboard overview">
+          <div class="dashboard">
+            <header class="section-header">
+              <div>
+                <h2>Business Development Dashboard</h2>
+                <p class="section-subtitle">Realtime view of corporate partnerships, donations pipeline, and grant milestones.</p>
+              </div>
+              <div class="section-meta">
+                <span class="meta-chip">Week of September 22, 2025</span>
+                <span class="meta-chip meta-chip--info" id="activeAlerts">0 Open Alerts</span>
+              </div>
+            </header>
+
+            <div class="metrics-grid">
+              <article class="metric-card">
+                <header>
+                  <h3>Active Leads</h3>
+                  <button class="metric-cta" type="button" onclick="switchToTab('leads')">View leads</button>
+                </header>
+                <div class="metric-value" id="activeLead">3</div>
+                <p class="metric-label">Corporate opportunities tracked this week</p>
+                <div class="metric-trend" id="activeLeadTrend">+1 vs last week</div>
+              </article>
+
+              <article class="metric-card">
+                <header>
+                  <h3>Equipment Pipeline</h3>
+                  <button class="metric-cta" type="button" onclick="switchToTab('leads')">Open pipeline</button>
+                </header>
+                <div class="metric-value" id="equipmentPipeline">425</div>
+                <p class="metric-label">Devices available for refurbishment</p>
+                <div class="metric-progress">
+                  <div class="metric-progress__bar" id="pipelineProgressBar"></div>
+                </div>
+              </article>
+
+              <article class="metric-card">
+                <header>
+                  <h3>Grant Progress</h3>
+                  <button class="metric-cta" type="button" onclick="switchToTab('grants')">Review milestones</button>
+                </header>
+                <div class="metric-value" id="grantProgress">33%</div>
+                <p class="metric-label">Digital Champion Grant (Aug 2024 - Dec 2026)</p>
+                <div class="metric-progress">
+                  <div class="metric-progress__bar" id="grantProgressBar"></div>
+                </div>
+              </article>
+
+              <article class="metric-card">
+                <header>
+                  <h3>High Priority Targets</h3>
+                  <button class="metric-cta" type="button" onclick="switchToTab('corporate')">Pipeline view</button>
+                </header>
+                <div class="metric-value" id="highPriorityTargets">4</div>
+                <p class="metric-label">Organizations in the acceleration lane</p>
+                <div class="metric-trend" id="priorityHealth">Healthy mix</div>
+              </article>
+            </div>
+
+            <section class="snapshot-grid" aria-label="Pipeline highlights">
+              <article class="card card--snapshot">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Conversion Snapshot</h3>
+                      <p class="section-subtitle">Progress from discovery to committed donations.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="switchToTab('leads')">Pipeline detail</button>
+                  </div>
+                  <div class="snapshot-metrics" id="conversionSnapshot"></div>
+                </div>
+              </article>
+
+              <article class="card card--snapshot">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Top Opportunity</h3>
+                      <p class="section-subtitle">Highest scoring lead ready for acceleration.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="viewTopLead()">View lead</button>
+                  </div>
+                  <div class="snapshot-feature" id="topOpportunity"></div>
+                </div>
+              </article>
+            </section>
+
+            <section class="action-center">
+              <article class="card">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Follow-up Queue</h3>
+                      <p class="section-subtitle">Upcoming outreach commitments ordered by urgency.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="switchToTab('leads')">Manage leads</button>
+                  </div>
+                  <ul class="action-list" id="followUpQueue" aria-live="polite"></ul>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Grant Alerts</h3>
+                      <p class="section-subtitle">Track looming deliverables and documentation checkpoints.</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="switchToTab('grants')">Grant tracker</button>
+                  </div>
+                  <ul class="action-list" id="grantAlertsList" aria-live="polite"></ul>
+                </div>
+              </article>
+            </section>
+
+            <section class="insights">
+              <div class="insights__grid">
+                <article class="card">
+                  <div class="card__body">
+                    <h3>Lead Sources Performance</h3>
+                    <canvas id="leadSourceChart" aria-label="Lead source performance chart"></canvas>
+                  </div>
+                </article>
+                <article class="card">
+                  <div class="card__body">
+                    <h3>Equipment Distribution</h3>
+                    <canvas id="equipmentChart" aria-label="Equipment mix chart"></canvas>
+                  </div>
+                </article>
+                <article class="card">
+                  <div class="card__body">
+                    <h3>Grant Roadmap</h3>
+                    <ul class="roadmap" id="grantRoadmap"></ul>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section class="dashboard-activities">
+              <div class="card">
+                <div class="card__body">
+                  <div class="card__header">
+                    <div>
+                      <h3>Recent Activities</h3>
+                      <p class="section-subtitle">Captured automatically from outreach logs</p>
+                    </div>
+                    <button class="btn btn--outline btn--sm" type="button" onclick="logSampleActivity()">Log demo activity</button>
+                  </div>
+                  <div class="activity-list" id="activityList"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- Corporate Pipeline Tab -->
+        <section id="corporate" class="tab-content" aria-labelledby="Corporate pipeline">
+          <header class="section-header">
+            <div>
+              <h2>Corporate Partnership Pipeline</h2>
+              <p class="section-subtitle">Targeted enterprise relationships fueling the refurbishment pipeline.</p>
+            </div>
+            <div class="section-actions">
+              <div class="chip-group" role="group" aria-label="Filter corporate targets">
+                <button class="chip chip--active" data-corporate-filter="all">All</button>
+                <button class="chip" data-corporate-filter="High">High Priority</button>
+                <button class="chip" data-corporate-filter="Medium">Medium Priority</button>
+              </div>
+              <button class="btn btn--primary" type="button" onclick="openCorporateModal()">Add Target Company</button>
+            </div>
+          </header>
+
+          <div class="pipeline-grid" id="corporateTargets"></div>
+        </section>
+
+        <!-- Lead Management Tab -->
+        <section id="leads" class="tab-content" aria-labelledby="Lead Management">
+          <header class="section-header">
+            <div>
+              <h2>Lead Management</h2>
+              <p class="section-subtitle">Track outreach, vetting, and logistics for donated equipment opportunities.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn--secondary" type="button" onclick="exportLeads()">Export CSV</button>
+              <button class="btn btn--primary" type="button" onclick="openAddLeadModal()">Add New Lead</button>
+            </div>
+          </header>
+
+          <div class="lead-health" id="leadHealth"></div>
+
+          <div class="leads-filters">
+            <div class="input-group">
+              <label class="form-label" for="searchFilter">Search</label>
+              <input class="form-control" id="searchFilter" type="search" placeholder="Search leads by title, company, or contact">
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="statusFilter">Status</label>
+              <select id="statusFilter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="New">New</option>
+                <option value="Researching">Researching</option>
+                <option value="Initial Contact">Initial Contact</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Proposal Sent">Proposal Sent</option>
+                <option value="Negotiating">Negotiating</option>
+                <option value="Committed">Committed</option>
+                <option value="Donated">Donated</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="sourceFilter">Source</label>
+              <select id="sourceFilter" class="form-control">
+                <option value="">All Sources</option>
+                <option value="Reddit (r/sysadmin)">Reddit r/sysadmin</option>
+                <option value="Reddit (r/ITManagers)">Reddit r/ITManagers</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Professional Referral">Professional Referral</option>
+                <option value="Facebook Business Groups">Facebook Business Groups</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="priorityFilter">Priority</label>
+              <select id="priorityFilter" class="form-control">
+                <option value="">All Priorities</option>
+                <option value="high">High (80+)</option>
+                <option value="medium">Medium (60-79)</option>
+                <option value="low">Low (&lt;60)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="sortFilter">Sort</label>
+              <select id="sortFilter" class="form-control">
+                <option value="priority">Priority (high to low)</option>
+                <option value="date">Newest first</option>
+                <option value="followUpDate">Closest follow-up</option>
+                <option value="quantity">Quantity (high to low)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="leads-table" id="leadsTable" role="region" aria-live="polite"></div>
+        </section>
+
+        <!-- Grant Compliance Tab -->
+        <section id="grants" class="tab-content" aria-labelledby="Grant compliance tracker">
+          <header class="section-header">
+            <div>
+              <h2>Grant Compliance Tracker</h2>
+              <p class="section-subtitle">Stay ahead of state reporting requirements and program deliverables.</p>
+            </div>
+          </header>
+
+          <section class="grant-overview">
+            <article class="card">
+              <div class="card__body">
+                <h3>Grant Summary</h3>
+                <dl class="definition-list">
+                  <div class="definition-list__row">
+                    <dt>Grantor</dt>
+                    <dd>NC Department of Information Technology</dd>
+                  </div>
+                  <div class="definition-list__row">
+                    <dt>Amount</dt>
+                    <dd>$600,000</dd>
+                  </div>
+                  <div class="definition-list__row">
+                    <dt>Term</dt>
+                    <dd>August 2024 &ndash; December 2026</dd>
+                  </div>
+                  <div class="definition-list__row">
+                    <dt>Mission</dt>
+                    <dd>Convert donated laptops into Chromebooks for underserved communities</dd>
+                  </div>
+                  <div class="definition-list__row">
+                    <dt>Impact Goal</dt>
+                    <dd>Distribute 2,000+ devices across 15 NC counties</dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card__body">
+                <h3>Compliance Health</h3>
+                <ul class="compliance-health" id="complianceHealth"></ul>
+              </div>
+            </article>
+          </section>
+
+          <div class="milestones-grid" id="grantMilestones"></div>
+        </section>
+
+        <!-- Reports Tab -->
+        <section id="reports" class="tab-content" aria-labelledby="Reports hub">
+          <header class="section-header">
+            <div>
+              <h2>Reporting Hub</h2>
+              <p class="section-subtitle">Produce board-ready updates and compliance summaries in seconds.</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn--outline" type="button" onclick="generateReport()">Preview Report</button>
+              <button class="btn btn--primary" type="button" onclick="downloadReportPDF()">Download PDF</button>
+            </div>
+          </header>
+
+          <div class="reports-grid">
+            <article class="card">
+              <div class="card__body">
+                <h3>Pipeline Health</h3>
+                <p>Highlights target companies, outreach stages, and blockers.</p>
+                <button class="btn btn--outline btn--sm" type="button" onclick="generateReport('pipeline')">Generate</button>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card__body">
+                <h3>Lead Source Analysis</h3>
+                <p>Compare volume and velocity by acquisition channel.</p>
+                <button class="btn btn--outline btn--sm" type="button" onclick="generateReport('leadSources')">Generate</button>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card__body">
+                <h3>Grant Compliance Status</h3>
+                <p>Track open tasks, funding consumption, and reporting cadence.</p>
+                <button class="btn btn--outline btn--sm" type="button" onclick="generateReport('grant')">Generate</button>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card__body">
+                <h3>Stakeholder Update</h3>
+                <p>Quarterly digest for board briefings and strategic partners.</p>
+                <button class="btn btn--outline btn--sm" type="button" onclick="generateReport('stakeholder')">Generate</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="report-preview" id="reportPreview" hidden></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Drawers and Modals -->
+    <aside class="drawer hidden" id="leadDrawer" aria-hidden="true" aria-labelledby="leadDrawerTitle" role="dialog">
+      <div class="drawer__content">
+        <div class="drawer__header">
+          <div>
+            <h3 id="leadDrawerTitle">Lead details</h3>
+            <p class="drawer__subtitle" id="leadDrawerSubtitle"></p>
+          </div>
+          <button class="drawer__close" type="button" aria-label="Close lead details" onclick="closeLeadDrawer()">&times;</button>
+        </div>
+        <div class="drawer__body" id="leadDrawerBody"></div>
+        <div class="drawer__footer">
+          <button class="btn btn--outline" type="button" onclick="openLeadStatusModalFromDrawer()">Update status</button>
+          <button class="btn btn--primary" type="button" onclick="closeLeadDrawer()">Close</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="modal hidden" id="addLeadModal" role="dialog" aria-modal="true" aria-labelledby="addLeadTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="addLeadTitle">Add New Lead</h3>
+          <button class="modal-close" type="button" aria-label="Close" onclick="closeAddLeadModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="addLeadForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="leadTitle">Lead Title</label>
+                <input type="text" class="form-control" id="leadTitle" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadCompany">Company</label>
+                <input type="text" class="form-control" id="leadCompany" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadContact">Contact</label>
+                <input type="text" class="form-control" id="leadContact" placeholder="Name or handle">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadLocation">Location</label>
+                <input type="text" class="form-control" id="leadLocation" placeholder="City, State">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadSource">Source</label>
+                <select class="form-control" id="leadSource" required>
+                  <option value="">Select Source</option>
+                  <option value="Reddit (r/sysadmin)">Reddit r/sysadmin</option>
+                  <option value="Reddit (r/ITManagers)">Reddit r/ITManagers</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Professional Referral">Professional Referral</option>
+                  <option value="Facebook Business Groups">Facebook Business Groups</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadEquipmentType">Equipment Type</label>
+                <select class="form-control" id="leadEquipmentType">
+                  <option value="">Select Type</option>
+                  <option value="Business Laptops">Business Laptops</option>
+                  <option value="Desktop Computers">Desktop Computers</option>
+                  <option value="Mixed Equipment">Mixed Equipment</option>
+                  <option value="Tablets">Tablets</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadQuantity">Estimated Quantity</label>
+                <input type="number" class="form-control" id="leadQuantity" min="0" placeholder="Devices">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="leadFollowUp">Follow-up Date</label>
+                <input type="date" class="form-control" id="leadFollowUp">
+              </div>
+              <div class="form-group form-group--full">
+                <label class="form-label" for="leadNotes">Notes</label>
+                <textarea class="form-control" id="leadNotes" rows="3"></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" type="button" onclick="closeAddLeadModal()">Cancel</button>
+          <button class="btn btn--primary" type="button" onclick="addLead()">Add Lead</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="leadStatusModal" role="dialog" aria-modal="true" aria-labelledby="leadStatusTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="leadStatusTitle">Update Lead Status</h3>
+          <button class="modal-close" type="button" aria-label="Close" onclick="closeLeadStatusModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="leadStatusForm">
+            <input type="hidden" id="statusLeadId">
+            <div class="form-group">
+              <label class="form-label" for="leadStatusSelect">Status</label>
+              <select class="form-control" id="leadStatusSelect" required>
+                <option value="New">New</option>
+                <option value="Researching">Researching</option>
+                <option value="Initial Contact">Initial Contact</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Proposal Sent">Proposal Sent</option>
+                <option value="Negotiating">Negotiating</option>
+                <option value="Committed">Committed</option>
+                <option value="Donated">Donated</option>
+                <option value="Not Interested">Not Interested</option>
+                <option value="Invalid">Invalid</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="leadPriorityInput">Priority Score</label>
+              <input type="number" class="form-control" id="leadPriorityInput" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="leadFollowUpInput">Follow-up Date</label>
+              <input type="date" class="form-control" id="leadFollowUpInput">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="leadNotesInput">Notes</label>
+              <textarea class="form-control" id="leadNotesInput" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" type="button" onclick="closeLeadStatusModal()">Cancel</button>
+          <button class="btn btn--primary" type="button" onclick="submitLeadStatusForm()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="corporateModal" role="dialog" aria-modal="true" aria-labelledby="corporateModalTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="corporateModalTitle">Add Corporate Target</h3>
+          <button class="modal-close" type="button" aria-label="Close" onclick="closeCorporateModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="corporateForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="corporateName">Company</label>
+                <input type="text" class="form-control" id="corporateName" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporateLocation">Location</label>
+                <input type="text" class="form-control" id="corporateLocation" placeholder="City, State">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporateType">Industry</label>
+                <input type="text" class="form-control" id="corporateType" placeholder="Technology, Finance, etc.">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporateEmployees">Employee Count</label>
+                <input type="text" class="form-control" id="corporateEmployees" placeholder="2500, 5k+, etc.">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporateStatus">Status</label>
+                <select class="form-control" id="corporateStatus">
+                  <option value="Research">Research</option>
+                  <option value="Discovery Call">Discovery Call</option>
+                  <option value="Initial Contact">Initial Contact</option>
+                  <option value="Proposal Sent">Proposal Sent</option>
+                  <option value="Strategic Partner">Strategic Partner</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporatePriority">Priority</label>
+                <select class="form-control" id="corporatePriority">
+                  <option value="High">High</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="corporateFocus">Impact Focus</label>
+                <input type="text" class="form-control" id="corporateFocus" placeholder="Digital inclusion, workforce, etc.">
+              </div>
+              <div class="form-group form-group--full">
+                <label class="form-label" for="corporateNotes">Notes</label>
+                <textarea class="form-control" id="corporateNotes" rows="3"></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn--outline" type="button" onclick="closeCorporateModal()">Cancel</button>
+          <button class="btn btn--primary" type="button" onclick="submitCorporateForm()">Add Company</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
