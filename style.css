@@ -1104,6 +1104,16 @@ select.form-control {
   font-size: var(--font-size-sm);
 }
 
+.chart-frame {
+  position: relative;
+  height: 280px;
+}
+
+.chart-frame canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .action-center {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
