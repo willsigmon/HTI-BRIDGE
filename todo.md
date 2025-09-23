@@ -15,3 +15,4 @@
 - [x] Ship admin console to monitor/schedule ingestion jobs, including rerun, pause, and API key health indicators.
 - [x] Expand analytics with stage duration, conversion funnel, forecast KPIs, and grant compliance scorecards.
 - [x] Provide embeddable lead intake forms / API keys so partners can submit opportunities directly.
+- [x] Add optional HTI_REQUIRE_AUTH gate so the dashboard surfaces live sign-in prompts when auth is enforced.

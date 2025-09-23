@@ -4,11 +4,27 @@ bootstrapSecurity();
 
 export function attachUser(req, res, next) {
   const headerUserId = req.header('x-user-id') || req.header('x-hti-user');
-  const workspaceId = req.header('x-workspace-id') || null;
-  const defaultUserId = 'hti-admin';
-  const user = getUserById(headerUserId || defaultUserId);
-  req.user = user || getUserById(defaultUserId);
-  req.workspaceId = workspaceId || req.user?.workspaceId || listWorkspaces()[0]?.id || null;
+  const workspaceHeader = req.header('x-workspace-id') || null;
+  const defaultUserId = process.env.HTI_DEFAULT_USER_ID || 'hti-admin';
+  const requireAuth = process.env.HTI_REQUIRE_AUTH === 'true';
+
+  let resolvedUser = headerUserId ? getUserById(headerUserId) : null;
+  if (!resolvedUser && !requireAuth) {
+    resolvedUser = getUserById(defaultUserId);
+  }
+
+  if (!resolvedUser) {
+    const authUrl = process.env.HTI_AUTH_URL || null;
+    res.status(401).json({
+      error: 'signin-required',
+      message: 'Sign in to access the HTI API.',
+      authUrl
+    });
+    return;
+  }
+
+  req.user = resolvedUser;
+  req.workspaceId = workspaceHeader || resolvedUser.workspaceId || listWorkspaces()[0]?.id || null;
   next();
 }
 

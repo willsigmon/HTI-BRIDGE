@@ -36,6 +36,10 @@ HTI_SAM_KEYWORDS="technology donation"
 HTI_SAM_AGENCY="DEPT OF DEFENSE"
 ```
 
+### Optional authentication toggle
+
+Set `HTI_REQUIRE_AUTH=true` to force callers to include a trusted `x-user-id` header before any CRM payload is returned. Pair it with `HTI_AUTH_URL=https://sso.example.com/login` so the dashboard banner can direct users to the appropriate sign-in flow. Leave the flag unset (default) for demo or offline use.
+
 ### 2. Serve the frontend
 
 Any static server will work. The UI auto-detects `/api`; override with `localStorage.setItem('hti-api-base', 'https://api.example.com')` if hosting separately.

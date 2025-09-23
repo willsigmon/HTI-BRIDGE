@@ -6,6 +6,7 @@ import { beforeEach, test } from 'node:test';
 import supertest from 'supertest';
 
 process.env.NODE_ENV = 'test';
+process.env.HTI_REQUIRE_AUTH = 'false';
 
 const tmpDir = path.join(os.tmpdir(), 'hti-newdash-tests');
 if (!fs.existsSync(tmpDir)) {
@@ -57,6 +58,18 @@ test('GET /api/security/api-keys denies contributor access', async () => {
   const response = await request.get('/api/security/api-keys').set('x-user-id', 'hti-fellow').expect(403);
   assert.equal(response.body.error, 'forbidden');
   assert.match(response.body.message, /Missing permission: security:manage/);
+});
+
+test('GET /api/bootstrap requires sign-in when HTI_REQUIRE_AUTH is true', async () => {
+  const original = process.env.HTI_REQUIRE_AUTH;
+  process.env.HTI_REQUIRE_AUTH = 'true';
+  try {
+    const response = await request.get('/api/bootstrap').expect(401);
+    assert.equal(response.body.error, 'signin-required');
+    assert.match(response.body.message, /Sign in/);
+  } finally {
+    process.env.HTI_REQUIRE_AUTH = original || 'false';
+  }
 });
 
 function seedDatabase() {
