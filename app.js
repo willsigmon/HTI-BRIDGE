@@ -74,6 +74,9 @@ const UPCOMING_THRESHOLD_DAYS = 14;
 
 const API_BASE_URL = window.__HTI_API_BASE__ || '/api';
 const API_TIMEOUT_MS = 8000;
+const DEFAULT_AUTH_URL = '/auth/login';
+const INITIAL_AUTH_URL = window.__HTI_AUTH_URL__ || DEFAULT_AUTH_URL;
+const AUTH_PROMPT_MESSAGE = 'Sign in with your HTI credentials to sync live data from the API.';
 
 const htiData = {
   corporateTargets: [
@@ -262,17 +265,16 @@ let uiState = {
   selectedEntityId: null,
   selectedAutomationPipelineId: null,
   selectedAutomationStageId: null,
-  entityQuery: ''
+  entityQuery: '',
+  authRequired: false,
+  authStatus: null,
+  authMessage: '',
+  authTarget: INITIAL_AUTH_URL,
+  authToastAt: 0
 };
 let mapInstance = null;
 let mapMarkers = [];
 let mapReady = false;
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startApp);
-} else {
-  startApp();
-}
 
 async function startApp() {
   await bootstrapData();
@@ -304,6 +306,7 @@ function initializeApp() {
 }
 
 function renderAll() {
+  renderAuthBanner();
   populatePersonaFilter();
   renderDashboard();
   renderCorporateTargets();
@@ -319,15 +322,128 @@ function renderAll() {
   renderActivities();
 }
 
+function renderAuthBanner() {
+  const banner = document.getElementById('authBanner');
+  if (!banner) return;
+
+  const titleEl = document.getElementById('authBannerTitle');
+  const messageEl = document.getElementById('authBannerMessage');
+  const statusEl = document.getElementById('authBannerStatus');
+
+  if (uiState.authRequired) {
+    banner.classList.remove('hidden');
+    if (titleEl) {
+      titleEl.textContent = 'Sign in required';
+    }
+    if (messageEl) {
+      messageEl.textContent = uiState.authMessage || AUTH_PROMPT_MESSAGE;
+    }
+    if (statusEl) {
+      if (uiState.authStatus) {
+        statusEl.textContent = `API response: ${uiState.authStatus}`;
+        statusEl.style.display = '';
+      } else {
+        statusEl.textContent = '';
+        statusEl.style.display = 'none';
+      }
+    }
+  } else {
+    banner.classList.add('hidden');
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.style.display = 'none';
+    }
+  }
+}
+
+function notifyAuthRequired(message) {
+  const now = Date.now();
+  if (now - (uiState.authToastAt || 0) < 60000) {
+    return;
+  }
+  createToast('Sign-in required', message, 'warning', 5000);
+  uiState.authToastAt = now;
+}
+
+function handleAuthError(error, message) {
+  if (!(error instanceof ApiError) || !isAuthStatus(error.status)) {
+    return false;
+  }
+  const details = typeof error.details === 'object' && error.details !== null ? error.details : {};
+  flagAuthRequired({
+    message: message || error.message,
+    status: error.status,
+    authUrl: details.authUrl || details.signInUrl || details.loginUrl,
+    forceMessage: true
+  });
+  return true;
+}
+
+function flagAuthRequired({ message, status, authUrl, forceMessage = false }) {
+  if (typeof status === 'number') {
+    uiState.authStatus = status;
+  }
+  if (authUrl && typeof authUrl === 'string') {
+    updateStoredAuthUrl(authUrl);
+    uiState.authTarget = authUrl;
+  } else if (!uiState.authTarget) {
+    uiState.authTarget = window.__HTI_AUTH_URL__ || INITIAL_AUTH_URL || DEFAULT_AUTH_URL;
+  }
+  if (forceMessage || !uiState.authMessage) {
+    uiState.authMessage = message || AUTH_PROMPT_MESSAGE;
+  }
+  uiState.authRequired = true;
+  renderAuthBanner();
+  return true;
+}
+
+function clearAuthState() {
+  if (!uiState.authRequired && !uiState.authStatus && !uiState.authMessage) {
+    return;
+  }
+  uiState.authRequired = false;
+  uiState.authStatus = null;
+  uiState.authMessage = '';
+  uiState.authToastAt = 0;
+  renderAuthBanner();
+}
+
+function dismissAuthBanner() {
+  uiState.authRequired = false;
+  uiState.authStatus = null;
+  uiState.authMessage = '';
+  uiState.authToastAt = 0;
+  renderAuthBanner();
+}
+
+function startAuthFlow() {
+  const target = uiState.authTarget || window.__HTI_AUTH_URL__ || INITIAL_AUTH_URL || DEFAULT_AUTH_URL;
+  if (!target) {
+    createToast('Configure sign-in', 'Set a login URL under Settings > Authentication.', 'info');
+    switchToTab('settings');
+    return;
+  }
+  try {
+    window.open(target, '_blank', 'noopener');
+  } catch (error) {
+    window.location.href = target;
+  }
+}
+
 async function bootstrapData() {
   try {
     const response = await apiRequest('/bootstrap', { method: 'GET' });
     const payload = await response.json();
     hydrateStateFromBootstrap(payload);
     apiAvailable = true;
+    clearAuthState();
   } catch (error) {
     console.warn('API bootstrap unavailable, falling back to local dataset.', error);
     apiAvailable = false;
+    const handled = handleAuthError(error, 'Sign in to load live CRM data from the HTI API.');
+    if (handled) {
+      notifyAuthRequired('Authenticate to resume live data sync.');
+    }
     state = loadState() ?? createDefaultState();
   }
 }
@@ -339,9 +455,14 @@ async function refreshFromApi() {
     const payload = await response.json();
     hydrateStateFromBootstrap(payload);
     apiAvailable = true;
+    clearAuthState();
     renderAll();
     updateLastRefreshed();
   } catch (error) {
+    if (handleAuthError(error, 'Sign in to restore live dashboard refresh.')) {
+      notifyAuthRequired('Authenticate to sync new data.');
+      return;
+    }
     console.warn('Unable to refresh from API, retaining current client state.', error);
   }
 }
@@ -456,6 +577,16 @@ function hydrateStateFromBootstrap(payload = {}) {
   populatePersonaFilter();
 }
 
+class ApiError extends Error {
+  constructor(message, { status, details, url } = {}) {
+    super(message || 'API request failed');
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+    this.url = url;
+  }
+}
+
 async function apiRequest(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
   const controller = new AbortController();
@@ -480,8 +611,20 @@ async function apiRequest(path, options = {}) {
     clearTimeout(timeout);
 
     if (!response.ok) {
-      const message = await safeParseError(response);
-      throw new Error(`API ${response.status}: ${message}`);
+      const errorInfo = await safeParseError(response);
+      const apiError = new ApiError(errorInfo.message, {
+        status: response.status,
+        details: errorInfo.details,
+        url
+      });
+      if (isAuthStatus(apiError.status)) {
+        const infoDetails = apiError.details;
+        const authUrl = infoDetails && typeof infoDetails === 'object'
+          ? infoDetails.authUrl || infoDetails.signInUrl || infoDetails.loginUrl
+          : undefined;
+        flagAuthRequired({ message: errorInfo.message, status: apiError.status, authUrl });
+      }
+      throw apiError;
     }
 
     return response;
@@ -496,11 +639,29 @@ async function apiRequest(path, options = {}) {
 
 async function safeParseError(response) {
   try {
-    const data = await response.json();
-    return data.error || JSON.stringify(data);
-  } catch (parseError) {
-    return response.statusText || 'Unknown error';
+    const text = await response.text();
+    if (!text) {
+      return { message: response.statusText || 'Request failed', details: null };
+    }
+    try {
+      const data = JSON.parse(text);
+      if (typeof data === 'string') {
+        return { message: data, details: data };
+      }
+      return {
+        message: data.error || data.message || response.statusText || 'Request failed',
+        details: data
+      };
+    } catch (parseError) {
+      return { message: text, details: text };
+    }
+  } catch (error) {
+    return { message: response.statusText || 'Request failed', details: null };
   }
+}
+
+function isAuthStatus(status) {
+  return status === 401 || status === 403;
 }
 
 function bindGlobalHandlers() {
@@ -694,6 +855,10 @@ function setupSettingsControls() {
   const apiBaseForm = document.getElementById('apiBaseForm');
   if (apiBaseForm) {
     apiBaseForm.addEventListener('submit', (event) => event.preventDefault());
+  }
+  const authSettingsForm = document.getElementById('authSettingsForm');
+  if (authSettingsForm) {
+    authSettingsForm.addEventListener('submit', (event) => event.preventDefault());
   }
 }
 
@@ -2200,6 +2365,10 @@ function renderSettingsPanel() {
   if (apiBaseInput) {
     apiBaseInput.value = localStorage.getItem('hti-api-base') || API_BASE_URL;
   }
+  const authUrlInput = document.getElementById('authUrlInput');
+  if (authUrlInput) {
+    authUrlInput.value = uiState.authTarget || window.__HTI_AUTH_URL__ || INITIAL_AUTH_URL;
+  }
 }
 
 async function refreshSettingsFromApi() {
@@ -2214,6 +2383,10 @@ async function refreshSettingsFromApi() {
     applySettingsPatch(payload, false);
     createToast('Settings synced', 'Fetched latest configuration from the API.', 'success');
   } catch (error) {
+    if (handleAuthError(error, 'Sign in to sync settings from the HTI API.')) {
+      notifyAuthRequired('Authenticate to load organization settings.');
+      return;
+    }
     console.error('Failed to fetch settings', error);
     createToast('Sync failed', error.message || 'Unable to load settings', 'error');
   }
@@ -2275,6 +2448,49 @@ function clearApiBaseOverride() {
   createToast('API base cleared', 'Using default relative API path.', 'success');
 }
 
+function saveAuthSettings() {
+  const input = document.getElementById('authUrlInput');
+  if (!input) return;
+  const value = input.value.trim();
+  if (!value) {
+    createToast('Missing URL', 'Enter a sign-in URL before saving.', 'warning');
+    return;
+  }
+  updateStoredAuthUrl(value);
+  uiState.authTarget = value;
+  if (!uiState.authMessage) {
+    uiState.authMessage = AUTH_PROMPT_MESSAGE;
+  }
+  createToast('Auth URL saved', 'Sign-in handoff updated.', 'success');
+  renderAuthBanner();
+}
+
+function clearAuthSettings() {
+  updateStoredAuthUrl('');
+  uiState.authTarget = window.__HTI_AUTH_URL__ || INITIAL_AUTH_URL;
+  const input = document.getElementById('authUrlInput');
+  if (input) {
+    input.value = uiState.authTarget;
+  }
+  createToast('Auth URL cleared', 'Reverted to default sign-in path.', 'success');
+  renderAuthBanner();
+}
+
+function updateStoredAuthUrl(value) {
+  if (storageAvailable) {
+    try {
+      if (value) {
+        localStorage.setItem('hti-auth-url', value);
+      } else {
+        localStorage.removeItem('hti-auth-url');
+      }
+    } catch (error) {
+      storageAvailable = false;
+    }
+  }
+  window.__HTI_AUTH_URL__ = value || DEFAULT_AUTH_URL;
+}
+
 async function resetSettingsToDefaults() {
   const confirmed = window.confirm('Reset all settings to defaults?');
   if (!confirmed) return;
@@ -2289,8 +2505,12 @@ async function persistSettingsPatch(patch, successMessage, offlineMessage) {
       createToast('Settings saved', successMessage, 'success');
       return;
     } catch (error) {
-      console.warn('API settings update failed, applying locally.', error);
-      createToast('Offline mode', offlineMessage, 'warning');
+      if (handleAuthError(error, 'Sign in to update settings via the API.')) {
+        notifyAuthRequired('Authenticate to push settings to the server.');
+      } else {
+        console.warn('API settings update failed, applying locally.', error);
+        createToast('Offline mode', offlineMessage, 'warning');
+      }
       apiAvailable = false;
     }
   }
@@ -3960,6 +4180,12 @@ function unlockModal() {
   if (openModalCount === 0) {
     document.body.classList.remove('is-modal-open');
   }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
 }
 
 function lockDrawer() {

@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="style.css">
   <script>
     window.__HTI_API_BASE__ = localStorage.getItem('hti-api-base') || '/api';
+    window.__HTI_AUTH_URL__ = localStorage.getItem('hti-auth-url') || '/auth/login';
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script
@@ -34,6 +35,22 @@
 <body>
   <div class="app" data-color-scheme="auto">
     <div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
+    <div class="auth-banner hidden" id="authBanner" role="alert" aria-live="assertive">
+      <div class="auth-banner__info">
+        <span class="auth-banner__icon" aria-hidden="true">&#128274;</span>
+        <div>
+          <p class="auth-banner__title" id="authBannerTitle">Sign in required</p>
+          <p class="auth-banner__message" id="authBannerMessage">
+            Sign in with your HTI credentials to sync live data from the API.
+          </p>
+          <p class="auth-banner__status" id="authBannerStatus"></p>
+        </div>
+      </div>
+      <div class="auth-banner__actions">
+        <button class="btn btn--primary btn--sm" type="button" onclick="startAuthFlow()">Sign in</button>
+        <button class="btn btn--outline btn--sm" type="button" onclick="dismissAuthBanner()">Dismiss</button>
+      </div>
+    </div>
 
     <header class="header" role="banner">
       <div class="container">
@@ -697,6 +714,24 @@
                   <div class="form-actions">
                     <button class="btn btn--primary" type="button" onclick="saveApiBaseOverride()">Set API Base</button>
                     <button class="btn btn--outline" type="button" onclick="clearApiBaseOverride()">Use default</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__body">
+                <h3>Authentication</h3>
+                <p class="section-subtitle">Configure the sign-in link used when live API calls require credentials.</p>
+                <form id="authSettingsForm" class="settings-form">
+                  <div class="form-group">
+                    <label class="form-label" for="authUrlInput">Sign-in URL</label>
+                    <input class="form-control" id="authUrlInput" type="url" placeholder="https://newdash.example.com/auth/login">
+                  </div>
+                  <p class="settings-hint">Use your identity provider, reverse proxy login, or API gateway sign-in endpoint.</p>
+                  <div class="form-actions">
+                    <button class="btn btn--primary" type="button" onclick="saveAuthSettings()">Save Auth URL</button>
+                    <button class="btn btn--outline" type="button" onclick="clearAuthSettings()">Use default</button>
                   </div>
                 </form>
               </div>

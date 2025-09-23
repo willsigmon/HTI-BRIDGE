@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src --exec node src/server.js",
     "start": "node src/server.js",
+    "test": "node --test",
     "sync:reddit": "node scripts/ingest-reddit.js",
     "sync:datagov": "node scripts/ingest-datagov.js",
     "sync:gsa": "node scripts/ingest-gsa-auctions.js",
@@ -23,6 +24,7 @@
     "node-ical": "0.16.1"
   },
   "devDependencies": {
-    "nodemon": "3.1.5"
+    "nodemon": "3.1.5",
+    "supertest": "^7.1.4"
   }
 }
