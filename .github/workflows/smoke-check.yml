@@ -1,0 +1,34 @@
+name: nightly-smoke-check
+
+on:
+  schedule:
+    - cron: '15 9 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  smoke-bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: server
+        run: npm install --production
+
+      - name: Run API smoke check
+        env:
+          HTI_SMOKE_API: ${{ secrets.HTI_SMOKE_API_BASE }}
+          HTI_SMOKE_USER: ${{ secrets.HTI_SMOKE_USER }}
+        working-directory: server
+        run: |
+          if [ -z "$HTI_SMOKE_API" ]; then
+            echo "HTI_SMOKE_API_BASE secret not set; skipping smoke check." && exit 0
+          fi
+          npm run smoke:bootstrap

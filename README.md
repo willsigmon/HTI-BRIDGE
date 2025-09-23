@@ -56,6 +56,8 @@ HTI_SMOKE_API="https://api.example.com/api" npm run smoke:bootstrap
 
 Pass `HTI_SMOKE_USER` if your proxy expects a specific user id header. The script prints lead counts, top opportunities, and ingestion job health.
 
+Automate the check by setting the `HTI_SMOKE_API_BASE` secret and enabling the `nightly-smoke-check` GitHub Action workflow (`.github/workflows/smoke-check.yml`).
+
 ### 2. Serve the frontend
 
 Any static server will work. The UI auto-detects `/api`; override with `localStorage.setItem('hti-api-base', 'https://api.example.com')` if hosting separately.
