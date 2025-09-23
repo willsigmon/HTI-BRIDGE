@@ -11,3 +11,4 @@ _Last updated: 2025-09-23_
 - **Grants.gov**: `sync:grants` script consumes the public search API to refresh grant milestones, surface matched keyword badges, auto-close expired opportunities, deep-link to the original listings, and feed the digital-literacy hours tracker (`HTI_GRANTS_*` env vars tune coverage).
 - **Corporate Refresh Monitor**: `sync:corporate` ingests a curated national prospect list (corporate, healthcare, finance, logistics, higher-ed) to surface laptop refresh batches plus CSR/ITAD contacts; filter via `HTI_CORPREFRESH_*` env vars.
 - **Automation**: auto-scoring/assignment runs after ingestion, creates follow-up tasks, and logs Slack/email digest notifications for high-priority logistics-friendly leads.
+- **Next Initiative**: kickoff simplified Salesforce-free CRM evaluator per `AGENTS.md` (scoring CLI, vendor YAML, migration/security outputs, CI artifacts).

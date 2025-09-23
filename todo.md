@@ -25,3 +25,9 @@
 - [x] Implement automatic grant-alignment scoring and priority weighting for new leads post ingestion.
 - [x] Auto assign high-priority leads to owners based on persona with follow-up tasks.
 - [x] Deliver Slack/email notifications summarizing new leads with logistics flags.
+
+- [ ] Bootstrap Salesforce-free CRM evaluator per `AGENTS.md`.
+- [ ] Populate vendor YAML stubs under `data/vendors/`.
+- [ ] Implement scoring engine + CLI (`crm-eval score`).
+- [ ] Draft migration, security, and integration generators.
+- [ ] Wire CI (Makefile, ruff/black/pytest) and produce sample artifacts.

@@ -19,4 +19,6 @@ _Last updated: 2025-09-23_
 
 ## To Provision Next
 - Evaluate Microsoft Nonprofit Hub connector for donor announcements (requires service account for Outlook sync).
+
 - Automation upgrades: compliance alerts for grant-aligned opportunities and Microsoft Nonprofit Hub connector.
+- New playbook: see `AGENTS.md` for Salesforce-free CRM evaluator automation (scoring CLI, vendor data, rollout artifacts).

@@ -194,3 +194,9 @@ All routes respect role-based permissions; the default `hti-admin` owner seeded 
 - **Lead sourcing**: browse `docs/data-sources.md` for free APIs and drip scrapes to plug into `sync:*` jobs.
 
 Enjoy the new HubZone-flavored cockpit! If you uncover issues, open the inspector & look for toasts—everything now reports errors unobtrusively.
+
+---
+
+### Curious about evaluating other CRMs?
+
+We maintain an automation-first playbook in `AGENTS.md` that guides agents (and humans) through building a Salesforce-free CRM alternatives evaluator—complete with scoring rubric, migration plan templates, and security checklists. Start there if you want a streamlined, less cluttered experience focused on comparative CRM research.
