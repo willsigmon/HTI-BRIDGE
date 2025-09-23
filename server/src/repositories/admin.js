@@ -45,6 +45,30 @@ export function ensureDefaultJobs() {
       averageDuration: null,
       createdAt: now,
       updatedAt: now
+    },
+    {
+      id: 'corporate-refresh',
+      source: 'Corporate Refresh Monitor',
+      cron: '0 6 * * 1',
+      status: 'idle',
+      enabled: true,
+      lastRunAt: null,
+      nextRunAt: null,
+      averageDuration: null,
+      createdAt: now,
+      updatedAt: now
+    },
+    {
+      id: 'grants-gov',
+      source: 'Grants.gov',
+      cron: '15 2 * * *',
+      status: 'idle',
+      enabled: true,
+      lastRunAt: null,
+      nextRunAt: null,
+      averageDuration: null,
+      createdAt: now,
+      updatedAt: now
     }
   );
   writeDb();

@@ -102,7 +102,10 @@ export const sampleMilestones = [
     dueDate: '2024-12-31',
     status: 'Upcoming',
     description: 'Quarterly progress and expenditure report to NCDIT',
-    priority: 'High'
+    priority: 'High',
+    url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=357994',
+    matchedKeywords: ['digital equity'],
+    source: 'Grants.gov'
   },
   {
     id: 'G002',
@@ -110,7 +113,10 @@ export const sampleMilestones = [
     dueDate: '2025-03-31',
     status: 'In Progress',
     description: 'Target: 500 additional Chromebook conversions',
-    priority: 'High'
+    priority: 'High',
+    url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=360356',
+    matchedKeywords: ['device donation', 'hardware refresh'],
+    source: 'Grants.gov'
   },
   {
     id: 'G003',
@@ -118,7 +124,10 @@ export const sampleMilestones = [
     dueDate: '2025-08-02',
     status: 'Planned',
     description: 'Annual review of grant compliance and documentation',
-    priority: 'Medium'
+    priority: 'Medium',
+    url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=360390',
+    matchedKeywords: ['compliance'],
+    source: 'Grants.gov'
   }
 ];
 
@@ -142,3 +151,10 @@ export const sampleActivities = [
     type: 'lead'
   }
 ];
+
+export const sampleGrantMetrics = {
+  digitalLiteracyHours: {
+    required: 170,
+    completed: 96
+  }
+};

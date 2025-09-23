@@ -19,5 +19,9 @@
 
 - [x] Ship `sync:usaspending` job to enrich corporate targets with award history + agency spend tagging.
 - [x] Build GovDeals RSS parser that drips surplus equipment into the Logistics Hotshot persona queue daily.
-- [ ] Wire Grants.gov feed into grant milestones (auto-close items when expiration passes).
+- [x] Wire Grants.gov feed into grant milestones (auto-close items when expiration passes).
 - [x] Create smoke-test GitHub Action that runs `npm run smoke:bootstrap` nightly against production.
+
+- [x] Implement automatic grant-alignment scoring and priority weighting for new leads post ingestion.
+- [x] Auto assign high-priority leads to owners based on persona with follow-up tasks.
+- [x] Deliver Slack/email notifications summarizing new leads with logistics flags.

@@ -9,6 +9,7 @@ import { mapLeadsToGeo } from './services/geocode.js';
 import { listLeads, createLead, updateLead, deleteLead, getLeadById, summarizeLeads } from './repositories/leads.js';
 import { listCorporateTargets, upsertCorporateTarget } from './repositories/corporateTargets.js';
 import { listMilestones } from './repositories/milestones.js';
+import { getGrantMetrics } from './repositories/grants.js';
 import { listActivities, addActivity } from './repositories/activities.js';
 import { listSyncLog } from './repositories/sync.js';
 import { listUnifiedRecords, summarizeEntities, mergeContacts, buildDedupIndex } from './repositories/entities.js';
@@ -72,6 +73,7 @@ app.get('/api/bootstrap', requirePermission('leads:read'), (req, res) => {
     leads: listLeads({ workspaceId }),
     corporateTargets: listCorporateTargets(),
     grantMilestones: listMilestones(),
+    grantMetrics: getGrantMetrics(),
     activities: listActivities(20),
     dashboard: buildDashboardSummary({ workspaceId }),
     syncLog: listSyncLog(20),

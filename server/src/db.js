@@ -17,6 +17,13 @@ const defaultData = {
   leads: [],
   corporateTargets: [],
   grantMilestones: [],
+  grantMetrics: {
+    digitalLiteracyHours: {
+      required: 170,
+      completed: 0,
+      updatedAt: null
+    }
+  },
   activities: [],
   syncLog: [],
   ingestCursor: {},
@@ -38,6 +45,7 @@ const defaultData = {
   interactionEvents: [],
   calendarEvents: [],
   tasks: [],
+  notificationLog: [],
   settings: {
     personas: {
       enabled: {

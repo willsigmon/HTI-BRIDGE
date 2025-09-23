@@ -24,7 +24,13 @@ const { createLead } = await import('../src/repositories/leads.js');
 const { upsertCorporateTarget } = await import('../src/repositories/corporateTargets.js');
 const { addActivity } = await import('../src/repositories/activities.js');
 const { resetSettings } = await import('../src/repositories/settings.js');
-const { sampleLeads, sampleCorporateTargets, sampleMilestones, sampleActivities } = await import('../scripts/sample-data.js');
+const {
+  sampleLeads,
+  sampleCorporateTargets,
+  sampleMilestones,
+  sampleActivities,
+  sampleGrantMetrics
+} = await import('../scripts/sample-data.js');
 
 const request = supertest(app);
 
@@ -89,6 +95,14 @@ function seedDatabase() {
     updatedAt: timestamp
   }));
 
+  db.data.grantMetrics = {
+    digitalLiteracyHours: {
+      required: sampleGrantMetrics.digitalLiteracyHours.required,
+      completed: sampleGrantMetrics.digitalLiteracyHours.completed,
+      updatedAt: timestamp
+    }
+  };
+
   sampleCorporateTargets.forEach((target) => {
     upsertCorporateTarget(target);
   });
@@ -116,6 +130,13 @@ function resetCollections() {
   db.data.leads = [];
   db.data.corporateTargets = [];
   db.data.grantMilestones = [];
+  db.data.grantMetrics = {
+    digitalLiteracyHours: {
+      required: 170,
+      completed: 0,
+      updatedAt: null
+    }
+  };
   db.data.activities = [];
   db.data.syncLog = [];
   db.data.ingestCursor = {};
@@ -137,6 +158,7 @@ function resetCollections() {
   db.data.interactionEvents = [];
   db.data.calendarEvents = [];
   db.data.tasks = [];
+  db.data.notificationLog = [];
   delete db.data.settings;
   writeDb();
 }

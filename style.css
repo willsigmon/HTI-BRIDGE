@@ -1558,6 +1558,38 @@ select.form-control {
   line-height: 1.5;
 }
 
+.milestone-footer {
+  margin-top: var(--space-16);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.milestone-tags {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.milestone-keyword {
+  background: rgba(15, 118, 110, 0.16);
+  color: var(--color-primary);
+}
+
+.grant-hours .card__header {
+  align-items: flex-start;
+}
+
+.grant-hours__meta {
+  margin-top: var(--space-16);
+}
+
+.grant-hours__meta .definition-list__row {
+  gap: var(--space-4);
+}
+
 /* Reports */
 .reports-grid {
   display: grid;

@@ -1,5 +1,11 @@
 import 'dotenv/config';
-import { sampleLeads, sampleCorporateTargets, sampleMilestones, sampleActivities } from './sample-data.js';
+import {
+  sampleLeads,
+  sampleCorporateTargets,
+  sampleMilestones,
+  sampleActivities,
+  sampleGrantMetrics
+} from './sample-data.js';
 import { db, writeDb } from '../src/db.js';
 import { bootstrapSecurity } from '../src/repositories/security.js';
 import { ensureDefaultPipelines } from '../src/repositories/pipelines.js';
@@ -13,6 +19,13 @@ function resetData() {
   db.data.leads = [];
   db.data.corporateTargets = [];
   db.data.grantMilestones = [];
+  db.data.grantMetrics = {
+    digitalLiteracyHours: {
+      required: 170,
+      completed: 0,
+      updatedAt: null
+    }
+  };
   db.data.activities = [];
   db.data.syncLog = [];
   db.data.ingestCursor = {};
@@ -34,6 +47,7 @@ function resetData() {
   db.data.interactionEvents = [];
   db.data.calendarEvents = [];
   db.data.tasks = [];
+  db.data.notificationLog = [];
 }
 
 function seed() {
@@ -53,6 +67,14 @@ function seed() {
     createdAt: now,
     updatedAt: now
   }));
+
+  db.data.grantMetrics = {
+    digitalLiteracyHours: {
+      required: sampleGrantMetrics.digitalLiteracyHours.required,
+      completed: sampleGrantMetrics.digitalLiteracyHours.completed,
+      updatedAt: now
+    }
+  };
 
   sampleLeads.forEach((lead) => {
     createLead(

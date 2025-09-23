@@ -6,6 +6,9 @@ import { runLeadAutomations } from '../services/automationEngine.js';
 import { logAuditEvent } from './audit.js';
 import { getUserById } from './security.js';
 import { getSettings } from './settings.js';
+import { createTask } from './automations.js';
+import { addActivity } from './activities.js';
+import { notifyNewLead } from '../services/notifications.js';
 
 const ACTIVE_STATUSES = new Set(['New', 'Researching', 'Initial Contact', 'Qualified', 'Proposal Sent', 'Negotiating']);
 const CLOSED_STATUSES = new Set(['Committed', 'Donated', 'Not Interested', 'Invalid']);
@@ -86,6 +89,16 @@ const PERSONA_DEFINITIONS = {
   'Tech Refresh Donor': { tags: ['technology', 'refresh'] },
   'Corporate IT Partner': { tags: ['corporate', 'it'] },
   'Logistics Hotshot': { tags: ['logistics', 'fast-turn'] }
+};
+
+const PERSONA_OWNER_MAP = {
+  'Tech Refresh Donor': 'hti-admin',
+  'Corporate IT Partner': 'hti-outreach',
+  'Healthcare System': 'hti-fellow',
+  'Education Partner': 'hti-fellow',
+  'Logistics Hotshot': 'hti-outreach',
+  'Government Procurement': 'hti-admin',
+  'Government Surplus': 'hti-outreach'
 };
 
 export function listLeads({
@@ -204,6 +217,7 @@ export function createLead(payload, { actorId = 'system' } = {}) {
     ownerId,
     ownerName: owner?.name || 'Outreach Lead',
     grantFlag: payload.grantFlag || false,
+    logistics: payload.logistics || null,
     createdAt: payload.date || now,
     updatedAt: now,
     stageHistory: stageId
@@ -456,6 +470,7 @@ export function upsertMultiple(leads) {
     const pipelineId = lead.pipelineId || existing?.pipelineId || getPrimaryPipelineId();
     const stageId = lead.stageId || existing?.stageId || (pipelineId ? getDefaultStageId(pipelineId) : null);
     const stage = stageId ? getStageById(stageId) : null;
+    const basePriority = normalizeIncomingPriority(lead.priority, existing?.priority, lead);
     const record = {
       id,
       title: lead.title,
@@ -465,7 +480,7 @@ export function upsertMultiple(leads) {
       location: lead.location,
       equipmentType: lead.equipmentType,
       estimatedQuantity: lead.estimatedQuantity ?? 0,
-      priority: lead.priority ?? calculatePriorityScore(lead),
+      priority: basePriority,
       status: lead.status || 'New',
       timeline: lead.timeline || existing?.timeline || 'TBD',
       followUpDate: lead.followUpDate || existing?.followUpDate,
@@ -477,13 +492,15 @@ export function upsertMultiple(leads) {
       pipelineId,
       stageId,
       probability: lead.probability ?? stage?.probability ?? probabilityFromStatus(lead.status),
-      ownerId: lead.ownerId || existing?.ownerId || defaultOwnerId,
-      ownerName: existing?.ownerName || getUserById(lead.ownerId || existing?.ownerId || defaultOwnerId)?.name || 'Outreach Lead'
+      ownerId: selectOwnerId(lead, existing, defaultOwnerId),
+      ownerName: resolveOwnerName(selectOwnerId(lead, existing, defaultOwnerId), existing),
+      logistics: lead.logistics || existing?.logistics || null
     };
 
     const personaData = categorizeLeadPersona(record);
     record.persona = personaData.persona;
     record.personaTags = personaData.personaTags;
+    applyAutomatedScoring(record);
 
     if (existing) {
       const previousStage = existing.stageId;
@@ -524,6 +541,10 @@ export function upsertMultiple(leads) {
       if (pipelineId && stageId) {
         assignLeadToStage({ leadId: id, pipelineId, stageId, actorId: lead.actorId || 'system' });
       }
+      if (record.priority >= 80) {
+        scheduleFollowUpTask(record, { actorId: lead.actorId || 'system' });
+        queueLeadNotification(record);
+      }
     }
   }
 
@@ -553,6 +574,108 @@ export function calculatePriorityScore(lead) {
   return Math.max(10, Math.min(100, Math.round(score)));
 }
 
+function normalizeIncomingPriority(incoming, fallback, lead) {
+  if (typeof incoming === 'number' && Number.isFinite(incoming)) {
+    return incoming;
+  }
+  if (typeof incoming === 'string') {
+    const normalized = incoming.toLowerCase();
+    if (normalized === 'high') return 85;
+    if (normalized === 'medium') return 70;
+    if (normalized === 'low') return 55;
+  }
+  if (typeof fallback === 'number' && Number.isFinite(fallback)) {
+    return fallback;
+  }
+  return calculatePriorityScore(lead);
+}
+
+function applyAutomatedScoring(record) {
+  let score = Number.isFinite(record.priority) ? record.priority : calculatePriorityScore(record);
+  const quantity = Number(record.estimatedQuantity ?? 0);
+  if (quantity >= 1000) score += 12;
+  else if (quantity >= 500) score += 9;
+  else if (quantity >= 200) score += 6;
+
+  const personaBonus = {
+    'Tech Refresh Donor': 10,
+    'Corporate IT Partner': 8,
+    'Healthcare System': 8,
+    'Education Partner': 6,
+    'Logistics Hotshot': 7,
+    'Government Procurement': 5,
+    'Government Surplus': 4
+  }[record.persona] || 0;
+  score += personaBonus;
+
+  if (record.logistics?.onsitePickup) score += 6;
+  if (record.logistics?.freightFriendly) score += 4;
+
+  const notes = (record.notes || '').toLowerCase();
+  const timeline = (record.timeline || '').toLowerCase();
+  if (record.grantFlag || notes.includes('digital literacy') || notes.includes('grant county')) {
+    score += 8;
+  }
+  if (timeline.includes('urgent') || timeline.includes('immediate')) {
+    score += 5;
+  }
+
+  if (record.followUpDate) {
+    const followUp = new Date(record.followUpDate);
+    if (!Number.isNaN(followUp.getTime())) {
+      const daysOut = Math.round((followUp.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+      if (daysOut <= 7) score += 4;
+    }
+  }
+
+  score = Math.max(10, Math.min(100, Math.round(score)));
+  record.priority = score;
+  record.priorityLabel = score >= 80 ? 'High' : score >= 60 ? 'Medium' : 'Low';
+}
+
+function selectOwnerId(lead, existing, defaultOwnerId) {
+  if (lead.ownerId) return lead.ownerId;
+  if (existing?.ownerId) return existing.ownerId;
+  const personaOwner = PERSONA_OWNER_MAP[lead.persona];
+  return personaOwner || defaultOwnerId;
+}
+
+function resolveOwnerName(ownerId, existing) {
+  if (existing?.ownerName && existing.ownerId === ownerId) {
+    return existing.ownerName;
+  }
+  const user = getUserById(ownerId);
+  return user?.name || 'Outreach Lead';
+}
+
+function scheduleFollowUpTask(lead, { actorId }) {
+  const dueDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const task = createTask(
+    {
+      title: `Call ${lead.company} about ${lead.estimatedQuantity} devices`,
+      description: `Auto-generated follow-up for ${lead.persona} lead (${lead.source}).`,
+      leadId: lead.id,
+      dueDate,
+      priority: 'high',
+      workspaceId: lead.workspaceId
+    },
+    { actorId }
+  );
+
+  addActivity({
+    text: `Automation scheduled follow-up task "${task.title}" (due ${dueDate}).`,
+    type: 'automation'
+  });
+}
+
+function queueLeadNotification(lead) {
+  setTimeout(() => {
+    notifyNewLead(lead).catch((error) => {
+      console.warn('Lead notification failed:', error.message);
+    });
+  }, 0);
+}
+
 export function convertLeadStatus(status) {
   if (CLOSED_STATUSES.has(status)) return 'Closed';
   if (ACTIVE_STATUSES.has(status)) return 'Active';
@@ -577,8 +700,9 @@ function categorizeLeadPersona(lead) {
   const followUpDays = followUpDate && !Number.isNaN(followUpDate.getTime())
     ? Math.round((followUpDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
+  const logistics = lead.logistics || {};
 
-  const context = { source, equipment, company, text, location, timeline, priority, followUpDays };
+  const context = { source, equipment, company, text, location, timeline, priority, followUpDays, logistics };
 
   const settings = getSettings();
   const enabledMap = settings?.personas?.enabled || {};
@@ -611,6 +735,8 @@ function categorizeLeadPersona(lead) {
   if (timeline.includes('grant')) tags.add('grant');
   if (source) tags.add(`source:${source}`);
   if (equipment) tags.add(`equipment:${equipment.replace(/\s+/g, '-')}`);
+  if (logistics.onsitePickup) tags.add('onsite-pickup');
+  if (logistics.freightFriendly) tags.add('freight-friendly');
 
   const weight = Number(weightMap[persona] ?? 1);
   if (Number.isFinite(weight) && weight !== 1) {

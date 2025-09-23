@@ -9,6 +9,8 @@ _Last updated: 2025-09-23_
 - `sync:sam` – SAM.gov opportunity fetch (requires API key) for Government Procurement persona.
 - `sync:usaspending` – USAspending awards, adds federal vendor leads, enriches metrics.
 - `sync:govdeals` – GovDeals RSS parser, feeds Logistics Hotshot persona for surplus hardware.
+- `sync:grants` – Grants.gov search API; refreshes grant milestones, badges matched keywords, links to listings, and closes expired opportunities while updating digital-literacy hours.
+- `sync:corporate` – Corporate refresh monitor using curated corporate, healthcare, finance, and logistics signals to queue national laptop refresh prospects with contact intel.
 
 ## Operational Agents
 - `smoke:bootstrap` – CLI smoke check for `/api/bootstrap`; also invoked nightly via GitHub Actions (`nightly-smoke-check`).
@@ -16,4 +18,5 @@ _Last updated: 2025-09-23_
 - Operations Console – monitors ingestion jobs, connectors, API keys, and forms from `/api/admin/ingestion`.
 
 ## To Provision Next
-- Grants.gov ingestion agent to sync grant postings and auto-update milestone due dates (blocked by 405 on REST endpoint; evaluate bulk download/CSV mirror).
+- Evaluate Microsoft Nonprofit Hub connector for donor announcements (requires service account for Outlook sync).
+- Automation upgrades: compliance alerts for grant-aligned opportunities and Microsoft Nonprofit Hub connector.

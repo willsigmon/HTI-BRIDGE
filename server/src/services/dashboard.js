@@ -1,6 +1,7 @@
 import { summarizeLeads, listLeads } from '../repositories/leads.js';
 import { listCorporateTargets, countHighPriorityTargets } from '../repositories/corporateTargets.js';
 import { listMilestones, summarizeMilestones } from '../repositories/milestones.js';
+import { getGrantMetrics } from '../repositories/grants.js';
 import { listActivities } from '../repositories/activities.js';
 
 export function buildDashboardSummary({ workspaceId } = {}) {
@@ -12,6 +13,8 @@ export function buildDashboardSummary({ workspaceId } = {}) {
   const highPriorityTargets = countHighPriorityTargets();
 
   const grantProgressPercent = computeGrantProgress(milestones);
+  const grantMetrics = getGrantMetrics();
+  const digitalLiteracyHours = computeDigitalLiteracy(grantMetrics.digitalLiteracyHours);
 
   const equipmentByType = activeLeads.reduce((acc, lead) => {
     const key = lead.equipmentType || 'Other';
@@ -55,6 +58,9 @@ export function buildDashboardSummary({ workspaceId } = {}) {
     equipmentByType,
     leadSources,
     grantProgressPercent,
+    grantMetrics: {
+      digitalLiteracyHours
+    },
     milestoneCounts: summarizeMilestones(),
     recentActivities: listActivities(12),
     corporateTargets,
@@ -79,4 +85,18 @@ function computeGrantProgress(milestones = []) {
     else if (milestone.status === 'In Progress') score += 0.5;
   }
   return Math.round((score / milestones.length) * 100);
+}
+
+function computeDigitalLiteracy(metric = {}) {
+  const required = Number.isFinite(metric.required) && metric.required > 0 ? metric.required : 170;
+  const completed = Number.isFinite(metric.completed) && metric.completed >= 0 ? metric.completed : 0;
+  const remaining = Math.max(0, required - completed);
+  const percent = required === 0 ? 0 : Math.round(Math.min(1, completed / required) * 100);
+  return {
+    required,
+    completed,
+    remaining,
+    percent,
+    updatedAt: metric.updatedAt || null
+  };
 }

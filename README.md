@@ -39,6 +39,16 @@ HTI_USA_AWARD_TYPES="A,B,C,D"
 HTI_USA_START_DATE=2023-10-01
 HTI_USA_END_DATE=2025-09-23
 HTI_GOVDEALS_FEEDS="https://www.govdeals.com/rss/index.cfm?fa=RSS&init=11&site_type=general&CatID=20"
+HTI_GRANTS_KEYWORDS="digital equity|device donation|broadband adoption"
+HTI_GRANTS_MAX_RESULTS=40
+HTI_GRANTS_STATUSES="forecasted|posted"
+HTI_CORPREFRESH_STATES="TX,NC,CA"        # optional filter for corporate refresh monitor
+HTI_CORPREFRESH_MIN_QTY=200               # skip prospects under this device count
+HTI_CORPREFRESH_REQUIRE_ONSITE_PICKUP=false
+HTI_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+HTI_SMTP_URL="smtp://user:pass@smtp.example.com:587"     # optional email transport
+HTI_NOTIFY_EMAIL_FROM=donations@hubzonetech.org
+HTI_NOTIFY_EMAILS="operations@hubzonetech.org,grants@hubzonetech.org"
 ```
 
 ### Optional authentication toggle
@@ -78,6 +88,8 @@ The service worker precaches core assets (`index.html`, `style.css`, `app.js`, i
 - **Operations Console** – monitor ingestion jobs, register connectors, manage API keys, and grab embeddable intake forms.
 - **Settings Dashboard** – toggle personas, adjust weighting, set default owners, and manage feature switches without redeploying.
 - **PWA polish** – installable manifest, offline caching, and responsive layouts tuned for hubzonetech.org branding.
+- **Grant Governance** – Grants.gov feed with keyword badges, deep links, and a digital-literacy hours tracker aligned with the NC Digital Champion award.
+- **Automated Outreach** – persona-aware lead scoring, default owner routing, follow-up task creation, and Slack/email notifications when high-priority batches arrive.
 
 ## Data Ingestion & Connectors
 
@@ -89,6 +101,8 @@ npm run sync:datagov  # catalog.data.gov
 npm run sync:gsa      # GSA surplus auctions
 npm run sync:sam      # SAM.gov opportunities (requires HTI_SAM_API_KEY)
 npm run sync:govdeals # GovDeals surplus RSS feeds (set HTI_GOVDEALS_FEEDS)
+npm run sync:grants   # Grants.gov opportunities -> grant milestones (links + keyword badges)
+npm run sync:corporate # Corporate refresh monitor -> national laptop refresh prospects
 npm run sync:usaspending  # USAspending awards (public federal IT contracts)
 ```
 

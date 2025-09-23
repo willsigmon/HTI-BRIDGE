@@ -191,7 +191,10 @@ const htiData = {
       dueDate: '2024-12-31',
       status: 'Upcoming',
       description: 'Quarterly progress and expenditure report to NCDIT',
-      priority: 'High'
+      priority: 'High',
+      url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=357994',
+      matchedKeywords: ['digital equity'],
+      source: 'Grants.gov'
     },
     {
       id: 'G002',
@@ -199,7 +202,10 @@ const htiData = {
       dueDate: '2025-03-31',
       status: 'In Progress',
       description: 'Target: 500 additional Chromebook conversions',
-      priority: 'High'
+      priority: 'High',
+      url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=360356',
+      matchedKeywords: ['device donation', 'hardware refresh'],
+      source: 'Grants.gov'
     },
     {
       id: 'G003',
@@ -207,9 +213,18 @@ const htiData = {
       dueDate: '2025-08-02',
       status: 'Planned',
       description: 'Annual review of grant compliance and documentation',
-      priority: 'Medium'
+      priority: 'Medium',
+      url: 'https://www.grants.gov/web/grants/view-opportunity.html?oppId=360390',
+      matchedKeywords: ['compliance'],
+      source: 'Grants.gov'
     }
   ],
+  grantMetrics: {
+    digitalLiteracyHours: {
+      required: 170,
+      completed: 96
+    }
+  },
   activities: [
     {
       id: 'A001',
@@ -318,6 +333,7 @@ function renderAll() {
   renderSettingsPanel();
   renderGrantMilestones();
   renderGrantRoadmap();
+  renderDigitalLiteracyHours();
   updateComplianceHealth();
   renderActivities();
 }
@@ -497,6 +513,7 @@ function hydrateStateFromBootstrap(payload = {}) {
   const milestonesData = payload.grantMilestones ?? payload.grant_milestones ?? [];
   const activitiesData = payload.activities ?? [];
   const dashboard = payload.dashboard ?? {};
+  const grantMetricsPayload = payload.grantMetrics ?? dashboard.grantMetrics ?? {};
   const syncLog = payload.syncLog ?? payload.sync_log ?? [];
   const entitiesData = payload.entities ?? [];
   const pipelinesData = payload.pipelines ?? [];
@@ -516,10 +533,14 @@ function hydrateStateFromBootstrap(payload = {}) {
 
   const existingDedupes = state?.dedupeMatches ?? [];
 
+  const normalizedGrantMetrics = normalizeGrantMetrics(grantMetricsPayload);
+  const dashboardGrantMetrics = normalizeGrantMetrics(dashboard.grantMetrics ?? normalizedGrantMetrics);
+
   state = {
     leads: leadsData,
     corporateTargets: corporateData,
     grantMilestones: milestonesData,
+    grantMetrics: normalizedGrantMetrics,
     activities: activitiesData,
     syncLog,
     entities: entitiesData,
@@ -546,7 +567,10 @@ function hydrateStateFromBootstrap(payload = {}) {
     },
     settings: settingsData ? mergeSettings(clone(DEFAULT_SETTINGS), settingsData) : state.settings || clone(DEFAULT_SETTINGS),
     serverAnalytics: analyticsPayload,
-    dashboard
+    dashboard: {
+      ...dashboard,
+      grantMetrics: dashboardGrantMetrics
+    }
   };
 
   state.leads.forEach(assignPersonaMetadata);
@@ -926,6 +950,9 @@ function updateThemeToggleLabel(button, theme) {
 function renderDashboard() {
   state.dashboard = state.dashboard || {};
   state.dashboard.metrics = state.dashboard.metrics || {};
+  const dashboardGrantMetrics = normalizeGrantMetrics(state.dashboard.grantMetrics || state.grantMetrics || {});
+  state.dashboard.grantMetrics = dashboardGrantMetrics;
+  state.grantMetrics = state.grantMetrics || dashboardGrantMetrics;
   const dashboardMetrics = state.dashboard?.metrics || {};
   const grantProgressPercent = state.dashboard?.grantProgressPercent;
 
@@ -2706,6 +2733,27 @@ function renderGrantMilestones() {
     .map((milestone) => {
       const dueLabel = formatDueLabel(milestone.dueDate);
       const statusClass = getStatusClass(getMilestoneStatus(milestone));
+      const keywordBadges = Array.isArray(milestone.matchedKeywords)
+        ? milestone.matchedKeywords
+            .filter(Boolean)
+            .map(
+              (keyword) =>
+                `<span class="badge milestone-keyword">${escapeHtml(keyword)}</span>`
+            )
+            .join(' ')
+        : '';
+      const detailHref = sanitizeUrl(milestone.url);
+      const detailButton = detailHref
+        ? `<a class="btn btn--outline btn-sm" href="${detailHref}" target="_blank" rel="noopener noreferrer">View listing</a>`
+        : '';
+      const footer = keywordBadges || detailButton
+        ? `
+            <footer class="milestone-footer">
+              <div class="milestone-tags">${keywordBadges}</div>
+              ${detailButton}
+            </footer>
+          `
+        : '';
       return `
         <article class="milestone-card">
           <div class="milestone-header">
@@ -2716,6 +2764,7 @@ function renderGrantMilestones() {
             <span class="status status--${statusClass}">${escapeHtml(getMilestoneStatus(milestone))}</span>
           </div>
           <p class="milestone-description">${escapeHtml(milestone.description)}</p>
+          ${footer}
         </article>
       `;
     })
@@ -2743,6 +2792,41 @@ function renderGrantRoadmap() {
       </li>
     `)
     .join('');
+}
+
+function renderDigitalLiteracyHours() {
+  const card = document.getElementById('digitalHoursCard');
+  if (!card) return;
+
+  const percentEl = document.getElementById('digitalHoursPercent');
+  const barEl = document.getElementById('digitalHoursBar');
+  const completedEl = document.getElementById('digitalHoursCompleted');
+  const remainingEl = document.getElementById('digitalHoursRemaining');
+  const updatedEl = document.getElementById('digitalHoursUpdated');
+
+  const metrics = state.dashboard?.grantMetrics?.digitalLiteracyHours
+    || state.grantMetrics?.digitalLiteracyHours
+    || normalizeGrantMetrics().digitalLiteracyHours;
+
+  const percent = Number.isFinite(metrics.percent) ? metrics.percent : 0;
+  const completed = Number.isFinite(metrics.completed) ? metrics.completed : 0;
+  const required = Number.isFinite(metrics.required) ? metrics.required : 170;
+  const remaining = Number.isFinite(metrics.remaining) ? metrics.remaining : Math.max(0, required - completed);
+
+  if (percentEl) percentEl.textContent = `${percent}% complete`;
+  if (barEl) barEl.style.width = `${clamp(percent, 0, 100)}%`;
+  if (completedEl) completedEl.textContent = formatNumber(completed);
+  if (remainingEl) remainingEl.textContent = formatNumber(remaining);
+  if (updatedEl) {
+    if (metrics.updatedAt) {
+      const timestamp = new Date(metrics.updatedAt);
+      updatedEl.textContent = Number.isNaN(timestamp.getTime())
+        ? 'Pending'
+        : timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } else {
+      updatedEl.textContent = 'Pending';
+    }
+  }
 }
 
 function updateComplianceHealth() {
@@ -3580,6 +3664,7 @@ function loadState() {
       leads,
       corporateTargets: Array.isArray(parsed.corporateTargets) ? parsed.corporateTargets : clone(htiData.corporateTargets),
       grantMilestones: Array.isArray(parsed.grantMilestones) ? parsed.grantMilestones : clone(htiData.grantMilestones),
+      grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? parsed.dashboard?.grantMetrics ?? htiData.grantMetrics),
       activities: Array.isArray(parsed.activities) ? parsed.activities : clone(htiData.activities),
       syncLog: Array.isArray(parsed.syncLog) ? parsed.syncLog : [],
       entities: Array.isArray(parsed.entities) ? parsed.entities : [],
@@ -3603,11 +3688,17 @@ function loadState() {
       },
       settings: parsed.settings ? mergeSettings(clone(DEFAULT_SETTINGS), parsed.settings) : clone(DEFAULT_SETTINGS),
       serverAnalytics: parsed.serverAnalytics ?? {},
-      dashboard: parsed.dashboard ?? {
-        metrics: {},
-        personaBreakdown,
-        topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null
-      }
+      dashboard: parsed.dashboard
+        ? {
+            ...parsed.dashboard,
+            grantMetrics: normalizeGrantMetrics(parsed.dashboard.grantMetrics ?? parsed.grantMetrics ?? htiData.grantMetrics)
+          }
+        : {
+            metrics: {},
+            personaBreakdown,
+            topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null,
+            grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? htiData.grantMetrics)
+          }
     };
   } catch (error) {
     console.warn('Failed to load saved state', error);
@@ -3619,10 +3710,22 @@ function loadState() {
 function createDefaultState() {
   const initialLeads = clone(htiData.sampleLeads).map((lead) => assignPersonaMetadata({ ...lead }));
   const personaBreakdown = buildPersonaBreakdown(initialLeads);
+  const sampleMilestones = clone(htiData.grantMilestones);
+  const grantMetrics = normalizeGrantMetrics(htiData.grantMetrics);
+  const grantProgressPercent = sampleMilestones.length
+    ? Math.round(
+        sampleMilestones.reduce((score, milestone) => {
+          if (milestone.status === 'Completed') return score + 1;
+          if (milestone.status === 'In Progress') return score + 0.5;
+          return score;
+        }, 0) / sampleMilestones.length * 100
+      )
+    : 0;
   return {
     leads: initialLeads,
     corporateTargets: clone(htiData.corporateTargets),
     grantMilestones: clone(htiData.grantMilestones),
+    grantMetrics,
     activities: clone(htiData.activities),
     syncLog: [],
     entities: buildSampleEntities(),
@@ -3648,7 +3751,16 @@ function createDefaultState() {
     },
     settings: clone(DEFAULT_SETTINGS),
     serverAnalytics: {},
-    dashboard: null
+    dashboard: {
+      metrics: {},
+      personaBreakdown,
+      topPersona: (() => {
+        const entry = getTopPersona(personaBreakdown);
+        return entry ? { name: entry[0], count: entry[1] } : null;
+      })(),
+      grantProgressPercent,
+      grantMetrics
+    }
   };
 }
 
@@ -3854,6 +3966,39 @@ function formatDueLabel(dateString) {
   if (diff === 1) return 'due tomorrow';
   if (diff <= UPCOMING_THRESHOLD_DAYS) return `due in ${diff} days`;
   return '';
+}
+
+function sanitizeUrl(url) {
+  if (!url) return '';
+  try {
+    const parsed = new URL(String(url), window.location.origin);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return '';
+    }
+    return parsed.href;
+  } catch (error) {
+    return '';
+  }
+}
+
+function normalizeGrantMetrics(metrics = {}) {
+  const source = metrics && typeof metrics === 'object' ? metrics : {};
+  const hours = source.digitalLiteracyHours && typeof source.digitalLiteracyHours === 'object'
+    ? source.digitalLiteracyHours
+    : source;
+  const required = Number.isFinite(hours.required) && hours.required > 0 ? hours.required : 170;
+  const completed = Number.isFinite(hours.completed) && hours.completed >= 0 ? hours.completed : 0;
+  const remaining = Math.max(0, required - completed);
+  const percent = required === 0 ? 0 : Math.round(Math.min(1, completed / required) * 100);
+  return {
+    digitalLiteracyHours: {
+      required,
+      completed,
+      remaining,
+      percent,
+      updatedAt: hours.updatedAt || null
+    }
+  };
 }
 
 function daysUntil(dateString) {

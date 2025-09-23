@@ -10,7 +10,8 @@ Curated list of data feeds you can wire into NewDash without paying for commerci
 | **GSA Auctions** | Real-time surplus equipment lots (computers, vehicles, industrial gear) | Requires optional API key | Already wired (`sync:gsa`). Use `HTI_GSA_STATES` to stay within pickup radius. |
 | **SAM.gov contract opportunities** | Technology refresh, asset disposition bids, federal donation programs | Requires free API key (14-day approval) | Already wired (`sync:sam`). Adjust `HTI_SAM_KEYWORDS` to chase niche persona buckets. |
 | **USAspending.gov Awards** | Historical IT modernization awards, vendor payments | Anonymous API | Use `sync:usaspending` to ingest top awards and enrich targets with agency + spend totals. |
-| **Grants.gov public API** | Federal grants (education, workforce, health) | Anonymous XML/JSON endpoints | Map CFDA codes to personas; ingest deadlines into grant milestones. |
+| **Grants.gov public API** | Federal grants (education, workforce, health) | Anonymous XML/JSON endpoints | Already wired (`sync:grants`) – refreshes grant milestones with keyword badges, deep links, auto-closes expired deadlines, and updates the digital-literacy hours tracker. |
+| **Corporate refresh intelligence (curated)** | National laptop/device refresh cadences across corporate, healthcare, finance, logistics, and higher-ed | Internal curated dataset + public filings (ESG, WARN, surplus) | Already wired (`sync:corporate`) – feeds large-batch laptop prospects with CSR/ITAD contacts and shipping logistics flags. |
 | **OpenCorporates** | Company registrations, officers, jurisdictions | Free tier (rate limited) | Build enrichment step that stamps organization profiles with legal name + jurisdiction. |
 
 ## Slow-drip scrapes (polite robots, free)
