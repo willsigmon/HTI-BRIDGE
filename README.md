@@ -40,6 +40,17 @@ HTI_SAM_AGENCY="DEPT OF DEFENSE"
 
 Set `HTI_REQUIRE_AUTH=true` to force callers to include a trusted `x-user-id` header before any CRM payload is returned. Pair it with `HTI_AUTH_URL=https://sso.example.com/login` so the dashboard banner can direct users to the appropriate sign-in flow. Leave the flag unset (default) for demo or offline use.
 
+### Quick smoke check
+
+Verify the deployed API is returning live payloads before a demo:
+
+```bash
+cd server
+HTI_SMOKE_API="https://api.example.com/api" npm run smoke:bootstrap
+```
+
+Pass `HTI_SMOKE_USER` if your proxy expects a specific user id header. The script prints lead counts, top opportunities, and ingestion job health.
+
 ### 2. Serve the frontend
 
 Any static server will work. The UI auto-detects `/api`; override with `localStorage.setItem('hti-api-base', 'https://api.example.com')` if hosting separately.
@@ -157,5 +168,6 @@ All routes respect role-based permissions; the default `hti-admin` owner seeded 
 - **Deeper enrichment**: plug SAM.gov, Crunchbase, Clearbit, etc., into the connector system for automated enrichment.
 - **Analytics**: ship metrics to Metabase/Redash or embed Superset charts via the new operations console.
 - **Mobile**: wrap the PWA in Capacitor for kiosk/field deployment.
+- **Lead sourcing**: browse `docs/data-sources.md` for free APIs and drip scrapes to plug into `sync:*` jobs.
 
 Enjoy the new HubZone-flavored cockpit! If you uncover issues, open the inspector & look for toasts—everything now reports errors unobtrusively.

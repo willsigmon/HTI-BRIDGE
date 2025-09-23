@@ -11,7 +11,8 @@
     "sync:datagov": "node scripts/ingest-datagov.js",
     "sync:gsa": "node scripts/ingest-gsa-auctions.js",
     "sync:sam": "node scripts/ingest-sam.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "smoke:bootstrap": "node scripts/smoke-bootstrap.js"
   },
   "dependencies": {
     "csv-parse": "5.5.6",
