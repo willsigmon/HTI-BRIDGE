@@ -17,7 +17,7 @@ Curated list of data feeds you can wire into NewDash without paying for commerci
 
 | Source | Delivery | Notes |
 | --- | --- | --- |
-| **GovDeals RSS** | RSS per category/location | Produce persona-specific feeds (e.g., `Computers & Networking in NC`). Use `connectors` CSV import after parsing. |
+| **GovDeals RSS** | RSS per category/location | Point `HTI_GOVDEALS_FEEDS` at targeted feeds and run `sync:govdeals` to drip surplus hardware into Logistics Hotshot lanes. |
 | **State surplus portals (NC, SC, VA)** | CSV/HTML listings | Most publish weekly spreadsheets. Set up Github Action to download and push through `/connectors/import/csv`. |
 | **University surplus auctions** | HTML calendars | Many UNC system schools post monthly. Scrape basic metadata (title, quantities) and create leads tagged `Education Partner`. |
 | **Municipal IT RFP boards** | RSS/Atom | Prioritize cities with ARPA digital equity plans. Tag for `Government Procurement` persona. |

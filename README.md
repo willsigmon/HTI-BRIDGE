@@ -38,6 +38,7 @@ HTI_USA_KEYWORDS="information technology,computer,digital equity"
 HTI_USA_AWARD_TYPES="A,B,C,D"
 HTI_USA_START_DATE=2023-10-01
 HTI_USA_END_DATE=2025-09-23
+HTI_GOVDEALS_FEEDS="https://www.govdeals.com/rss/index.cfm?fa=RSS&init=11&site_type=general&CatID=20"
 ```
 
 ### Optional authentication toggle
@@ -85,6 +86,7 @@ npm run sync:reddit   # r/sysadmin, r/ITManagers
 npm run sync:datagov  # catalog.data.gov
 npm run sync:gsa      # GSA surplus auctions
 npm run sync:sam      # SAM.gov opportunities (requires HTI_SAM_API_KEY)
+npm run sync:govdeals # GovDeals surplus RSS feeds (set HTI_GOVDEALS_FEEDS)
 npm run sync:usaspending  # USAspending awards (public federal IT contracts)
 ```
 
