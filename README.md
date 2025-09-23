@@ -34,6 +34,10 @@ HTI_GSA_STATES=NC,SC,VA
 HTI_SAM_API_KEY=your_sam_api_key
 HTI_SAM_KEYWORDS="technology donation"
 HTI_SAM_AGENCY="DEPT OF DEFENSE"
+HTI_USA_KEYWORDS="information technology,computer,digital equity"
+HTI_USA_AWARD_TYPES="A,B,C,D"
+HTI_USA_START_DATE=2023-10-01
+HTI_USA_END_DATE=2025-09-23
 ```
 
 ### Optional authentication toggle
@@ -81,6 +85,7 @@ npm run sync:reddit   # r/sysadmin, r/ITManagers
 npm run sync:datagov  # catalog.data.gov
 npm run sync:gsa      # GSA surplus auctions
 npm run sync:sam      # SAM.gov opportunities (requires HTI_SAM_API_KEY)
+npm run sync:usaspending  # USAspending awards (public federal IT contracts)
 ```
 
 Runs are cursor-aware, lightly throttled, and log to the ingestion console with audit entries.

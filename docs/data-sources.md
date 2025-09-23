@@ -9,7 +9,7 @@ Curated list of data feeds you can wire into NewDash without paying for commerci
 | **Data.gov package search** | Federal/state digital equity grants, e‑waste programs, public donation initiatives | Anonymous JSON API (`package_search`) | Already wired (`sync:datagov`). Tune `HTI_DATAGOV_QUERY` per persona segment. |
 | **GSA Auctions** | Real-time surplus equipment lots (computers, vehicles, industrial gear) | Requires optional API key | Already wired (`sync:gsa`). Use `HTI_GSA_STATES` to stay within pickup radius. |
 | **SAM.gov contract opportunities** | Technology refresh, asset disposition bids, federal donation programs | Requires free API key (14-day approval) | Already wired (`sync:sam`). Adjust `HTI_SAM_KEYWORDS` to chase niche persona buckets. |
-| **USAspending.gov Awards** | Historical IT modernization awards, vendor payments | Anonymous API | Schedule quarterly pulls to enrich corporate targets with award size + agency relationships. |
+| **USAspending.gov Awards** | Historical IT modernization awards, vendor payments | Anonymous API | Use `sync:usaspending` to ingest top awards and enrich targets with agency + spend totals. |
 | **Grants.gov public API** | Federal grants (education, workforce, health) | Anonymous XML/JSON endpoints | Map CFDA codes to personas; ingest deadlines into grant milestones. |
 | **OpenCorporates** | Company registrations, officers, jurisdictions | Free tier (rate limited) | Build enrichment step that stamps organization profiles with legal name + jurisdiction. |
 

@@ -17,7 +17,7 @@
 - [x] Provide embeddable lead intake forms / API keys so partners can submit opportunities directly.
 - [x] Add optional HTI_REQUIRE_AUTH gate so the dashboard surfaces live sign-in prompts when auth is enforced.
 
-- [ ] Ship `sync:usaspending` job to enrich corporate targets with award history + agency spend tagging.
+- [x] Ship `sync:usaspending` job to enrich corporate targets with award history + agency spend tagging.
 - [ ] Build GovDeals RSS parser that drips surplus equipment into the Logistics Hotshot persona queue daily.
 - [ ] Wire Grants.gov feed into grant milestones (auto-close items when expiration passes).
 - [ ] Create smoke-test GitHub Action that runs `npm run smoke:bootstrap` nightly against production.

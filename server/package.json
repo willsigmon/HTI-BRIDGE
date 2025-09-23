@@ -11,6 +11,7 @@
     "sync:datagov": "node scripts/ingest-datagov.js",
     "sync:gsa": "node scripts/ingest-gsa-auctions.js",
     "sync:sam": "node scripts/ingest-sam.js",
+    "sync:usaspending": "node scripts/ingest-usaspending.js",
     "seed": "node scripts/seed.js",
     "smoke:bootstrap": "node scripts/smoke-bootstrap.js"
   },
