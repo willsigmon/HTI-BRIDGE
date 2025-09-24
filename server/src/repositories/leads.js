@@ -9,9 +9,12 @@ import { getSettings } from './settings.js';
 import { createTask } from './automations.js';
 import { addActivity } from './activities.js';
 import { notifyNewLead } from '../services/notifications.js';
+import {
+  PERSONA_CONFIG,
+  createStatusSets
+} from '../../../shared/config/statusPersonas.js';
 
-const ACTIVE_STATUSES = new Set(['New', 'Researching', 'Initial Contact', 'Qualified', 'Proposal Sent', 'Negotiating']);
-const CLOSED_STATUSES = new Set(['Committed', 'Donated', 'Not Interested', 'Invalid']);
+const { active: ACTIVE_STATUSES, closed: CLOSED_STATUSES } = createStatusSets();
 
 function getLeadsCollection() {
   return db.data.leads;
@@ -36,8 +39,8 @@ function ensureStageHistory(record) {
   }
 }
 
-const DEFAULT_PERSONA = 'Corporate IT Partner';
-const LOGISTICS_PERSONA = 'Logistics Hotshot';
+const DEFAULT_PERSONA = PERSONA_CONFIG.defaultPersona;
+const LOGISTICS_PERSONA = PERSONA_CONFIG.logisticsPersona;
 
 const PERSONA_RULES = [
   {
@@ -81,25 +84,11 @@ const PERSONA_RULES = [
   }
 ];
 
-const PERSONA_DEFINITIONS = {
-  'Government Surplus': { tags: ['public-sector', 'surplus'] },
-  'Government Procurement': { tags: ['public-sector', 'procurement'] },
-  'Healthcare System': { tags: ['healthcare'] },
-  'Education Partner': { tags: ['education', 'community'] },
-  'Tech Refresh Donor': { tags: ['technology', 'refresh'] },
-  'Corporate IT Partner': { tags: ['corporate', 'it'] },
-  'Logistics Hotshot': { tags: ['logistics', 'fast-turn'] }
-};
+const PERSONA_DEFINITIONS = Object.fromEntries(
+  Object.entries(PERSONA_CONFIG.tagDefinitions).map(([persona, tags]) => [persona, { tags }])
+);
 
-const PERSONA_OWNER_MAP = {
-  'Tech Refresh Donor': 'hti-admin',
-  'Corporate IT Partner': 'hti-outreach',
-  'Healthcare System': 'hti-fellow',
-  'Education Partner': 'hti-fellow',
-  'Logistics Hotshot': 'hti-outreach',
-  'Government Procurement': 'hti-admin',
-  'Government Surplus': 'hti-outreach'
-};
+const PERSONA_OWNER_MAP = { ...PERSONA_CONFIG.ownerMap };
 
 export function listLeads({
   status,

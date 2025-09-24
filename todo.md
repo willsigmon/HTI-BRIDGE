@@ -26,8 +26,12 @@
 - [x] Auto assign high-priority leads to owners based on persona with follow-up tasks.
 - [x] Deliver Slack/email notifications summarizing new leads with logistics flags.
 
-- [ ] Bootstrap Salesforce-free CRM evaluator per `AGENTS.md`.
-- [ ] Populate vendor YAML stubs under `data/vendors/`.
-- [ ] Implement scoring engine + CLI (`crm-eval score`).
-- [ ] Draft migration, security, and integration generators.
-- [ ] Wire CI (Makefile, ruff/black/pytest) and produce sample artifacts.
+- [x] Bootstrap Salesforce-free CRM evaluator per `AGENTS.md`.
+- [x] Populate vendor YAML stubs under `data/vendors/`.
+- [x] Implement scoring engine + CLI (`crm-eval score`).
+- [x] Draft migration, security, and integration generators.
+- [x] Wire CI (Makefile, ruff/black/pytest) and produce sample artifacts.
+- [ ] Phase 1: Split dashboard frontend into ES modules and finish shared config adoption.
+- [ ] Phase 2: Replace LowDB with Postgres (Knex/Prisma), add migrations, enforce workspace scoping.
+- [ ] Phase 3: Add API key auth + rate limiting/logging on intake/connectors, surface UI auth errors.
+- [ ] Phase 4: Add Node integration tests, wire Node lint/tests into CI, document local scripts.

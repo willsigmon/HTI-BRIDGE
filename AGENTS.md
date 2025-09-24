@@ -49,12 +49,18 @@ Build a reproducible toolkit that ranks and explains **highly-rated CRM systems 
 │   └── suitecrm.yml
 ├── config/criteria.yml          # weights + rubric (see below)
 ├── artifacts/.gitkeep           # generated outputs go here
+├── fixtures/bootstrap.json      # static fallback dataset for dashboard demo
 ├── tests/                       # pytest suite
 │   ├── test_scoring.py
 │   ├── test_report.py
 │   └── test_cli.py
 ├── pyproject.toml               # ruff/black/pytest config
 ├── .pre-commit-config.yaml
+├── shared/config/statusPersonas.js  # shared personas/status settings
+├── web/                          # ES module entrypoint for dashboard (Phase 1 WIP)
+│   ├── config.js
+│   ├── data-loader.js
+│   └── main.js
 └── Makefile
 ````
 
