@@ -1,0 +1,70 @@
+name: "SuiteCRM"
+plan_names:
+  - "Cloud Basic"
+  - "Cloud Medium"
+  - "Cloud Advanced"
+hosting: "SaaS / Self-hosted"
+oss: true
+website: "https://suitecrm.com/"
+core:
+  sales_pipeline: true
+  service_ticketing: "included"
+  marketing_automation: "campaigns module"
+integrations:
+  apis:
+    - "REST"
+    - "SOAP"
+  webhooks: true
+  sdks:
+    - "PHP"
+  ipaas:
+    - "Zapier"
+    - "Make"
+customization:
+  objects:
+    - "modules"
+    - "custom_modules"
+    - "workflows"
+  workflow_engine: "advanced workflow"
+analytics_ai:
+  reporting: "adequate"
+  ai_features:
+    - "none"
+security:
+  sso: "SAML via extensions"
+  mfa: true
+  compliance:
+    - "GDPR"
+  data_residency:
+    - "depends_on_hosting"
+data:
+  bulk_api: true
+  export:
+    - "CSV"
+    - "API"
+  attachments: "supported"
+pricing_tco:
+  notes: "Open source lowers license cost; hosting/maintenance required."
+support_ecosystem:
+  marketplace_apps: 250
+  partners: "community + vendors"
+capabilities:
+  - "email_calendar_sync"
+  - "basic_automation"
+  - "helpdesk"
+  - "open_source"
+scores:
+  integrations_apis: 3
+  customization_extensibility: 4
+  usability_admin: 2
+  analytics_ai: 2
+  security_compliance: 2
+  sales_core: 4
+  service: 4
+  marketing: 3
+  pricing_tco: 4
+  data_migration_portability: 4
+  support_ecosystem_viability: 3
+notes:
+  - "Strengths: open source flexibility with no per-user licensing."
+  - "Trade-offs: UI and admin UX lag modern SaaS; security posture depends on hosting."

@@ -1,0 +1,77 @@
+name: "SugarCRM"
+plan_names:
+  - "Sell Advanced"
+  - "Sell Premier"
+  - "Enterprise"
+hosting: "SaaS"
+oss: false
+website: "https://www.sugarcrm.com/"
+core:
+  sales_pipeline: true
+  service_ticketing: "Sugar Serve add-on"
+  marketing_automation: "Sugar Market add-on"
+integrations:
+  apis:
+    - "REST"
+    - "SOAP"
+  webhooks: true
+  sdks:
+    - "PHP"
+    - "JavaScript"
+  ipaas:
+    - "Workato"
+    - "Zapier"
+customization:
+  objects:
+    - "accounts"
+    - "contacts"
+    - "opportunities"
+    - "custom_modules"
+  workflow_engine: "advanced workflow"
+analytics_ai:
+  reporting: "advanced"
+  ai_features:
+    - "predictive_scoring"
+    - "forecasting"
+security:
+  sso: "SAML"
+  mfa: true
+  compliance:
+    - "SOC 2"
+    - "ISO 27001"
+    - "GDPR"
+  data_residency:
+    - "US"
+    - "EU"
+data:
+  bulk_api: true
+  export:
+    - "CSV"
+    - "API"
+    - "data_lake"
+  attachments: "supported"
+pricing_tco:
+  notes: "Flexible deployment options; admins should plan for configuration time."
+support_ecosystem:
+  marketplace_apps: 500
+  partners: "global"
+capabilities:
+  - "email_calendar_sync"
+  - "basic_automation"
+  - "predictive_scoring"
+  - "helpdesk"
+scores:
+  integrations_apis: 4
+  customization_extensibility: 5
+  usability_admin: 3
+  analytics_ai: 4
+  security_compliance: 4
+  sales_core: 5
+  service: 4
+  marketing: 4
+  pricing_tco: 3
+  data_migration_portability: 4
+  support_ecosystem_viability: 4
+notes:
+  - "Strengths: mature platform with deep customization and deployment flexibility."
+  - "Trade-offs: UI feels older; configuration and maintenance require skilled admins."

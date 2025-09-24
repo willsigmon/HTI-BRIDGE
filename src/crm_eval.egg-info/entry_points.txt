@@ -1,0 +1,2 @@
+[console_scripts]
+crm-eval = crm_eval.cli:main

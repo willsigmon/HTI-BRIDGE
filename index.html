@@ -87,18 +87,36 @@
     </header>
 
     <nav class="nav" aria-label="Primary">
-      <div class="container">
+      <div class="container nav__layout">
         <div class="nav__tabs" role="tablist">
-          <button class="nav__tab nav__tab--active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
-          <button class="nav__tab" data-tab="corporate" role="tab" aria-selected="false">Pipelines</button>
+          <button class="nav__tab nav__tab--active" data-tab="dashboard" role="tab" aria-selected="true">Overview</button>
           <button class="nav__tab" data-tab="leads" role="tab" aria-selected="false">Lead Desk</button>
-          <button class="nav__tab" data-tab="dataHub" role="tab" aria-selected="false">CRM Data Hub</button>
-          <button class="nav__tab" data-tab="automation" role="tab" aria-selected="false">Automation Studio</button>
-          <button class="nav__tab" data-tab="map" role="tab" aria-selected="false">Field Ops Map</button>
-          <button class="nav__tab" data-tab="grants" role="tab" aria-selected="false">Grant Compliance</button>
-          <button class="nav__tab" data-tab="admin" role="tab" aria-selected="false">Operations Console</button>
-          <button class="nav__tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+          <button class="nav__tab" data-tab="corporate" role="tab" aria-selected="false">Pipelines</button>
           <button class="nav__tab" data-tab="reports" role="tab" aria-selected="false">Reports</button>
+          <button class="nav__tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+        </div>
+        <div class="nav__overflow">
+          <button
+            class="nav__more"
+            id="navMoreToggle"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="navOverflowMenu"
+          >
+            More
+            <span class="nav__more-icon" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="nav__overflow-menu" id="navOverflowMenu" hidden>
+            <p class="nav__overflow-title" id="navOverflowTitle">Additional workspaces</p>
+            <div class="nav__overflow-list" role="tablist" aria-labelledby="navOverflowTitle">
+              <button class="nav__tab" data-tab="dataHub" role="tab" aria-selected="false">CRM Data Hub</button>
+              <button class="nav__tab" data-tab="automation" role="tab" aria-selected="false">Automation Studio</button>
+              <button class="nav__tab" data-tab="map" role="tab" aria-selected="false">Field Ops Map</button>
+              <button class="nav__tab" data-tab="grants" role="tab" aria-selected="false">Grant Compliance</button>
+              <button class="nav__tab" data-tab="admin" role="tab" aria-selected="false">Operations Console</button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>

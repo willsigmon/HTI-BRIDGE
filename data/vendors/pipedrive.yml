@@ -1,0 +1,66 @@
+{
+  "name": "Pipedrive",
+  "plan_names": ["Essential", "Advanced", "Professional", "Power"],
+  "hosting": "SaaS",
+  "oss": false,
+  "website": "https://www.pipedrive.com/",
+  "core": {
+    "sales_pipeline": true,
+    "service_ticketing": "minimal",
+    "marketing_automation": "light"
+  },
+  "integrations": {
+    "apis": ["REST"],
+    "webhooks": true,
+    "sdks": ["JavaScript"],
+    "ipaas": ["Zapier", "Make"]
+  },
+  "customization": {
+    "objects": ["deals", "contacts", "custom_fields"],
+    "workflow_engine": "visual automation"
+  },
+  "analytics_ai": {
+    "reporting": "solid",
+    "ai_features": ["deal_rotten_alerts"]
+  },
+  "security": {
+    "sso": "SAML (Enterprise)",
+    "mfa": true,
+    "compliance": ["SOC 2", "GDPR"],
+    "data_residency": ["US", "EU"]
+  },
+  "data": {
+    "bulk_api": true,
+    "export": ["CSV", "API"],
+    "attachments": "supported"
+  },
+  "pricing_tco": {
+    "notes": "Simple pricing; advanced automation limited."
+  },
+  "support_ecosystem": {
+    "marketplace_apps": 300,
+    "partners": "growing"
+  },
+  "capabilities": [
+    "email_calendar_sync",
+    "basic_automation",
+    "deal_rotting_alerts"
+  ],
+  "scores": {
+    "integrations_apis": 3,
+    "customization_extensibility": 3,
+    "usability_admin": 5,
+    "analytics_ai": 3,
+    "security_compliance": 3,
+    "sales_core": 5,
+    "service": 2,
+    "marketing": 2,
+    "pricing_tco": 4,
+    "data_migration_portability": 3,
+    "support_ecosystem_viability": 3
+  },
+  "notes": [
+    "Strengths: pipeline-focused UX ideal for sales teams.",
+    "Trade-offs: limited native marketing/service functions."
+  ]
+}

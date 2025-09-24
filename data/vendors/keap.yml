@@ -1,0 +1,72 @@
+name: "Keap"
+plan_names:
+  - "Pro"
+  - "Max"
+  - "Max Classic"
+hosting: "SaaS"
+oss: false
+website: "https://keap.com/"
+core:
+  sales_pipeline: true
+  service_ticketing: "light via cases"
+  marketing_automation: "strong for SMB"
+integrations:
+  apis:
+    - "REST"
+  webhooks: true
+  sdks:
+    - "PHP"
+    - "JavaScript"
+  ipaas:
+    - "Zapier"
+    - "Make"
+customization:
+  objects:
+    - "contacts"
+    - "companies"
+    - "deals"
+    - "quotes"
+  workflow_engine: "campaign builder"
+analytics_ai:
+  reporting: "adequate"
+  ai_features:
+    - "automation insights"
+security:
+  sso: "native"
+  mfa: true
+  compliance:
+    - "SOC 2"
+    - "GDPR"
+  data_residency:
+    - "US"
+data:
+  bulk_api: true
+  export:
+    - "CSV"
+    - "API"
+  attachments: "supported"
+pricing_tco:
+  notes: "Bundles email, sales, and invoicing; pricing per contact volume."
+support_ecosystem:
+  marketplace_apps: 300
+  partners: "certified partners"
+capabilities:
+  - "email_calendar_sync"
+  - "basic_automation"
+  - "marketing_automation"
+  - "payments"
+scores:
+  integrations_apis: 3
+  customization_extensibility: 3
+  usability_admin: 4
+  analytics_ai: 3
+  security_compliance: 3
+  sales_core: 4
+  service: 2
+  marketing: 5
+  pricing_tco: 3
+  data_migration_portability: 3
+  support_ecosystem_viability: 3
+notes:
+  - "Strengths: powerful automation and nurture flows tailored for small businesses."
+  - "Trade-offs: limited enterprise controls; contact-based pricing can scale costs."

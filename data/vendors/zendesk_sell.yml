@@ -1,0 +1,67 @@
+{
+  "name": "Zendesk Sell",
+  "plan_names": ["Team", "Growth", "Professional", "Enterprise"],
+  "hosting": "SaaS",
+  "oss": false,
+  "website": "https://www.zendesk.com/sell/",
+  "core": {
+    "sales_pipeline": true,
+    "service_ticketing": "integrated via Zendesk Suite",
+    "marketing_automation": "light"
+  },
+  "integrations": {
+    "apis": ["REST"],
+    "webhooks": true,
+    "sdks": ["Java", "Python"],
+    "ipaas": ["Zapier", "Workato"]
+  },
+  "customization": {
+    "objects": ["leads", "contacts", "deals", "custom_fields"],
+    "workflow_engine": "playbooks"
+  },
+  "analytics_ai": {
+    "reporting": "good",
+    "ai_features": ["sales forecasting", "activity suggestions"]
+  },
+  "security": {
+    "sso": "SAML",
+    "mfa": true,
+    "compliance": ["SOC 2", "ISO 27001", "GDPR"],
+    "data_residency": ["US", "EU", "JP"]
+  },
+  "data": {
+    "bulk_api": true,
+    "export": ["CSV", "API"],
+    "attachments": "supported"
+  },
+  "pricing_tco": {
+    "notes": "Best value when paired with Zendesk Suite."
+  },
+  "support_ecosystem": {
+    "marketplace_apps": 1000,
+    "partners": "global"
+  },
+  "capabilities": [
+    "email_calendar_sync",
+    "basic_automation",
+    "helpdesk",
+    "phone_integration"
+  ],
+  "scores": {
+    "integrations_apis": 4,
+    "customization_extensibility": 3,
+    "usability_admin": 4,
+    "analytics_ai": 3,
+    "security_compliance": 4,
+    "sales_core": 4,
+    "service": 5,
+    "marketing": 2,
+    "pricing_tco": 3,
+    "data_migration_portability": 3,
+    "support_ecosystem_viability": 4
+  },
+  "notes": [
+    "Strengths: seamless with Zendesk customer service stack.",
+    "Trade-offs: marketing automation limited; best for service-heavy orgs."
+  ]
+}

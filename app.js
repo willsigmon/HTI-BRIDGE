@@ -299,6 +299,7 @@ async function startApp() {
 
 function initializeApp() {
   setupTabNavigation();
+  setupNavOverflow();
   setupFilters();
   setupCorporateFilters();
   setupThemeToggle();
@@ -728,6 +729,36 @@ function setupTabNavigation() {
         renderOperationsConsole();
       }
     });
+  });
+}
+
+function setupNavOverflow() {
+  const toggle = document.getElementById('navMoreToggle');
+  const menu = document.getElementById('navOverflowMenu');
+  if (!toggle || !menu) return;
+
+  const closeMenu = () => {
+    toggle.setAttribute('aria-expanded', 'false');
+    menu.hidden = true;
+  };
+
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    menu.hidden = expanded;
+  });
+
+  menu.addEventListener('click', (event) => {
+    const button = event.target.closest('.nav__tab');
+    if (button) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.target === toggle || menu.contains(event.target)) return;
+    closeMenu();
   });
 }
 
@@ -3569,6 +3600,13 @@ function handleEscapeKey(event) {
   const drawer = document.getElementById('leadDrawer');
   if (drawer && !drawer.classList.contains('hidden')) {
     closeLeadDrawer();
+  }
+
+  const navToggle = document.getElementById('navMoreToggle');
+  const navMenu = document.getElementById('navOverflowMenu');
+  if (navToggle && navMenu && navToggle.getAttribute('aria-expanded') === 'true') {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navMenu.hidden = true;
   }
 }
 

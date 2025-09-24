@@ -1,0 +1,70 @@
+name: "Copper CRM"
+plan_names:
+  - "Starter"
+  - "Professional"
+  - "Business"
+hosting: "SaaS"
+oss: false
+website: "https://www.copper.com/"
+core:
+  sales_pipeline: true
+  service_ticketing: "available via partners"
+  marketing_automation: "light"
+integrations:
+  apis:
+    - "REST"
+  webhooks: true
+  sdks:
+    - "Zapier"
+  ipaas:
+    - "Zapier"
+    - "Make"
+customization:
+  objects:
+    - "leads"
+    - "people"
+    - "companies"
+    - "opportunities"
+  workflow_engine: "automations"
+analytics_ai:
+  reporting: "solid"
+  ai_features:
+    - "pipeline suggestions"
+security:
+  sso: "Google Workspace"
+  mfa: true
+  compliance:
+    - "SOC 2"
+    - "GDPR"
+  data_residency:
+    - "US"
+data:
+  bulk_api: true
+  export:
+    - "CSV"
+    - "API"
+  attachments: "supported"
+pricing_tco:
+  notes: "Best for Google Workspace-centric teams; transparent pricing."
+support_ecosystem:
+  marketplace_apps: 200
+  partners: "focused"
+capabilities:
+  - "email_calendar_sync"
+  - "basic_automation"
+  - "google_workspace_native"
+scores:
+  integrations_apis: 3
+  customization_extensibility: 3
+  usability_admin: 4
+  analytics_ai: 3
+  security_compliance: 3
+  sales_core: 4
+  service: 2
+  marketing: 2
+  pricing_tco: 4
+  data_migration_portability: 3
+  support_ecosystem_viability: 3
+notes:
+  - "Strengths: deeply integrated with Google Workspace; fast adoption."
+  - "Trade-offs: limited service modules and lighter automations versus larger suites."
