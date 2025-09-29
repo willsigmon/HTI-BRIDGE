@@ -2730,7 +2730,8 @@ function renderLeadsTable() {
               <td>${escapeHtml(lead.equipmentType || 'N/A')}</td>
               <td>${lead.estimatedQuantity ? formatNumber(lead.estimatedQuantity) : 'N/A'}</td>
               <td>
-                <span class="priority-badge priority-${getPriorityClass(lead.priority)}">${lead.priority ?? '—'}</span>
+                <span class="priority-badge priority-${getPriorityClass(lead.priority)}" title="${lead.scoreBreakdown ? `Alignment: ${lead.scoreBreakdown.alignment}/25, Engagement: ${lead.scoreBreakdown.engagement}/25, Capacity: ${lead.scoreBreakdown.capacity}/25, Timing: ${lead.scoreBreakdown.timing}/25` : 'No breakdown available'}">${lead.priority ?? '—'}</span>
+                ${lead.enrichment?.enrichedAt ? '<span style="margin-left: 4px; color: var(--color-green-500);" title="Enriched with external data">✓</span>' : ''}
               </td>
               <td>${renderPersonaBadge(lead)}</td>
               <td><span class="status status--${getStatusClass(lead.status)}">${escapeHtml(lead.status)}</span></td>
@@ -3184,6 +3185,28 @@ function viewLead(leadId) {
     { label: 'Source', value: lead.source || 'N/A' }
   ];
 
+  const enrichmentHtml = lead.enrichment ? `
+    <div class="enrichment-summary" style="margin-top: 1rem; padding: 0.75rem; background: var(--color-bg-4); border-radius: 6px; border: 1px solid rgba(var(--color-green-500-rgb), 0.3);">
+      <h4 style="margin: 0 0 0.5rem 0; font-size: 0.875rem; font-weight: 600; color: var(--color-text);">Enrichment Data</h4>
+      ${lead.enrichment.revenue ? `<div style="font-size: 0.8125rem; margin-bottom: 0.25rem;"><strong>Revenue:</strong> ${escapeHtml(lead.enrichment.revenue)}</div>` : ''}
+      ${lead.enrichment.employees ? `<div style="font-size: 0.8125rem; margin-bottom: 0.25rem;"><strong>Employees:</strong> ${escapeHtml(lead.enrichment.employees)}</div>` : ''}
+      ${lead.enrichment.industry ? `<div style="font-size: 0.8125rem; margin-bottom: 0.25rem;"><strong>Industry:</strong> ${escapeHtml(lead.enrichment.industry)}</div>` : ''}
+      ${lead.enrichment.description ? `<div style="font-size: 0.8125rem; margin-top: 0.5rem; color: var(--color-text-secondary);">${escapeHtml(lead.enrichment.description)}</div>` : ''}
+    </div>
+  ` : '';
+
+  const scoreBreakdownHtml = lead.scoreBreakdown ? `
+    <div class="score-breakdown" style="margin-top: 1rem; padding: 0.75rem; background: var(--color-bg-3); border-radius: 6px; border: 1px solid rgba(var(--color-orange-500-rgb), 0.3);">
+      <h4 style="margin: 0 0 0.5rem 0; font-size: 0.875rem; font-weight: 600; color: var(--color-text);">Score Breakdown (${lead.priority || 0}/100)</h4>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.8125rem;">
+        <div><strong>Alignment:</strong> ${lead.scoreBreakdown.alignment || 0}/25</div>
+        <div><strong>Engagement:</strong> ${lead.scoreBreakdown.engagement || 0}/25</div>
+        <div><strong>Capacity:</strong> ${lead.scoreBreakdown.capacity || 0}/25</div>
+        <div><strong>Timing:</strong> ${lead.scoreBreakdown.timing || 0}/25</div>
+      </div>
+    </div>
+  ` : '';
+
   drawerBody.innerHTML = `
     <ul class="lead-detail-list">
       ${details
@@ -3196,6 +3219,12 @@ function viewLead(leadId) {
         .join('')}
     </ul>
     ${lead.notes ? `<p>${escapeHtml(lead.notes)}</p>` : ''}
+    ${scoreBreakdownHtml}
+    ${enrichmentHtml}
+    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      ${lead.company ? `<button class="btn btn--primary btn-sm" onclick="enrichLeadFromDrawer()">Enrich Lead</button>` : ''}
+      <button class="btn btn--outline btn-sm" onclick="rescoreLeadFromDrawer()">Recalculate Score</button>
+    </div>
   `;
 
   drawer.classList.remove('hidden');
@@ -3217,6 +3246,96 @@ function viewTopLead() {
     return;
   }
   viewLead(topLeadId);
+}
+
+async function enrichLeadFromDrawer() {
+  const drawer = document.getElementById('leadDrawer');
+  const leadId = drawer?.getAttribute('data-lead-id');
+  if (!leadId) {
+    createToast('Error', 'No lead selected.', 'error');
+    return;
+  }
+
+  const lead = state.leads.find((l) => l.id === leadId);
+  if (!lead) {
+    createToast('Error', 'Lead not found.', 'error');
+    return;
+  }
+
+  if (!apiAvailable) {
+    createToast('Offline', 'Enrichment requires API connection.', 'warning');
+    return;
+  }
+
+  createToast('Enriching...', `Researching ${lead.company} via Perplexity AI`, 'info');
+
+  try {
+    const response = await apiRequest(`/leads/${encodeURIComponent(leadId)}/enrich`, {
+      method: 'POST',
+      body: {}
+    });
+
+    const result = await response.json();
+
+    // Update state
+    const index = state.leads.findIndex((l) => l.id === leadId);
+    if (index !== -1) {
+      state.leads[index] = result.lead;
+    }
+
+    createToast('Success', `Enriched ${lead.title}`, 'success');
+
+    // Refresh drawer to show new data
+    viewLead(leadId);
+
+  } catch (error) {
+    console.error('Enrichment error:', error);
+    createToast('Enrichment failed', error.message || 'Unable to enrich lead.', 'error');
+  }
+}
+
+async function rescoreLeadFromDrawer() {
+  const drawer = document.getElementById('leadDrawer');
+  const leadId = drawer?.getAttribute('data-lead-id');
+  if (!leadId) {
+    createToast('Error', 'No lead selected.', 'error');
+    return;
+  }
+
+  const lead = state.leads.find((l) => l.id === leadId);
+  if (!lead) {
+    createToast('Error', 'Lead not found.', 'error');
+    return;
+  }
+
+  if (!apiAvailable) {
+    createToast('Offline', 'Scoring requires API connection.', 'warning');
+    return;
+  }
+
+  try {
+    const response = await apiRequest(`/leads/${encodeURIComponent(leadId)}/rescore`, {
+      method: 'POST',
+      body: {}
+    });
+
+    const result = await response.json();
+
+    // Update state
+    const index = state.leads.findIndex((l) => l.id === leadId);
+    if (index !== -1) {
+      state.leads[index] = result.lead;
+    }
+
+    createToast('Success', `Rescored ${lead.title}: ${result.score.total}/100`, 'success');
+
+    // Refresh drawer to show new score
+    viewLead(leadId);
+
+  } catch (error) {
+    console.error('Rescoring error:', error);
+    createToast('Scoring failed', error.message || 'Unable to rescore lead.', 'error');
+  }
 }
 
 async function archiveLead(leadId) {

@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import { attachUser, requirePermission, authenticateApiKey } from './middleware/auth.js';
 import { buildDashboardSummary } from './services/dashboard.js';
 import { mapLeadsToGeo } from './services/geocode.js';
+import { enrichLead, rescoreLead, getEnrichmentSummary } from './services/leadEnrichment.js';
 import { listLeads, createLead, updateLead, deleteLead, getLeadById, summarizeLeads } from './repositories/leads.js';
 import { listCorporateTargets, upsertCorporateTarget } from './repositories/corporateTargets.js';
 import { listMilestones } from './repositories/milestones.js';
@@ -155,6 +156,108 @@ app.post('/api/leads/:id/complete-follow-up', requirePermission('leads:write'), 
   }
   addActivity({ text: `Follow-up completed for ${lead.title}`, type: 'update' });
   res.json({ ...lead, followUpDate: nextDate });
+});
+
+app.post('/api/leads/:id/enrich', requirePermission('leads:write'), async (req, res) => {
+  const { id } = req.params;
+  const lead = getLeadById(id);
+
+  if (!lead) {
+    res.status(404).json({ error: 'Lead not found' });
+    return;
+  }
+
+  if (!lead.company) {
+    res.status(400).json({ error: 'Lead must have a company name to enrich' });
+    return;
+  }
+
+  try {
+    const result = await enrichLead(lead, {
+      skipPerplexity: req.body.skipPerplexity || false,
+      updateScore: req.body.updateScore !== false
+    });
+
+    // Update the lead with enrichment data
+    const updates = {
+      enrichment: result.enrichment
+    };
+
+    if (result.score) {
+      updates.priority = result.score.total;
+      updates.priorityLabel = result.score.total >= 80 ? 'High' : result.score.total >= 60 ? 'Medium' : 'Low';
+      updates.scoreBreakdown = result.score.breakdown;
+      updates.disqualified = result.score.disqualified;
+      updates.disqualificationReason = result.score.disqualificationReason;
+    }
+
+    const updatedLead = updateLead(id, updates, { actorId: req.user.id });
+
+    addActivity({
+      text: `Lead enriched: ${lead.title} (${result.metadata.sourcesUsed.join(', ')})`,
+      type: 'enrichment'
+    });
+
+    res.json({
+      lead: updatedLead,
+      enrichment: result.enrichment,
+      score: result.score,
+      metadata: result.metadata
+    });
+
+  } catch (error) {
+    console.error('Error enriching lead:', error);
+    res.status(500).json({ error: 'Enrichment failed', details: error.message });
+  }
+});
+
+app.post('/api/leads/:id/rescore', requirePermission('leads:write'), (req, res) => {
+  const { id } = req.params;
+  const lead = getLeadById(id);
+
+  if (!lead) {
+    res.status(404).json({ error: 'Lead not found' });
+    return;
+  }
+
+  try {
+    const result = rescoreLead(lead);
+
+    const updatedLead = updateLead(id, {
+      priority: result.priority,
+      priorityLabel: result.priorityLabel,
+      scoreBreakdown: result.score.breakdown,
+      disqualified: result.score.disqualified,
+      disqualificationReason: result.score.disqualificationReason
+    }, { actorId: req.user.id });
+
+    addActivity({
+      text: `Lead rescored: ${lead.title} (${result.priority} points)`,
+      type: 'scoring'
+    });
+
+    res.json({
+      lead: updatedLead,
+      score: result.score
+    });
+
+  } catch (error) {
+    console.error('Error rescoring lead:', error);
+    res.status(500).json({ error: 'Scoring failed', details: error.message });
+  }
+});
+
+app.get('/api/leads/:id/enrichment-summary', requirePermission('leads:read'), (req, res) => {
+  const { id } = req.params;
+  const lead = getLeadById(id);
+
+  if (!lead) {
+    res.status(404).json({ error: 'Lead not found' });
+    return;
+  }
+
+  const summary = getEnrichmentSummary(lead);
+  res.json(summary);
 });
 
 app.get('/api/pipelines', requirePermission('pipelines:read'), (req, res) => {
