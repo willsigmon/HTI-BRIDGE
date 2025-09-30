@@ -55,7 +55,7 @@ const DEFAULT_SETTINGS = {
 // Bootstrap Data
 // ============================================================================
 
-const htiData = await loadBootstrapFixture();
+let htiData = null;
 
 // ============================================================================
 // Shared State
@@ -76,7 +76,7 @@ let apiAvailable = { value: false };
 let storageAvailable = { value: true };
 
 // Core application state
-let state = State.createDefaultState(htiData, DEFAULT_SETTINGS);
+let state = null;
 
 // UI state and contexts
 let charts = { leadSources: null, equipment: null };
@@ -109,9 +109,31 @@ let mapReady = { value: false };
 // ============================================================================
 
 async function startApp() {
-  await bootstrapData();
-  initializeApp();
-  Utils.registerServiceWorker();
+  try {
+    // Load fixture data first
+    htiData = await loadBootstrapFixture();
+
+    // Initialize state with loaded data
+    state = State.createDefaultState(htiData, DEFAULT_SETTINGS);
+
+    // Then bootstrap from API if available
+    await bootstrapData();
+
+    // Initialize the UI
+    initializeApp();
+
+    // Register service worker
+    Utils.registerServiceWorker();
+  } catch (error) {
+    console.error('[HTI] Failed to start app:', error);
+    document.body.innerHTML = `
+      <div style="padding: 40px; text-align: center; font-family: sans-serif;">
+        <h1>Failed to load HTI Dashboard</h1>
+        <p>Error: ${error.message}</p>
+        <button onclick="location.reload()">Retry</button>
+      </div>
+    `;
+  }
 }
 
 async function bootstrapData() {
