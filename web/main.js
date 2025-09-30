@@ -418,92 +418,96 @@ function clearAuthSettings() {
 // Expose Functions to Window for HTML onclick Handlers
 // ============================================================================
 
-// Application lifecycle
-window.startApp = startApp;
+function exposeWindowFunctions() {
+  // Application lifecycle
+  window.startApp = startApp;
 
-// Lead management
-window.openAddLeadModal = Leads.openAddLeadModal;
-window.closeAddLeadModal = Leads.closeAddLeadModal;
-window.addLead = () => Leads.addLead(state, apiAvailable, refreshFromApi, renderAll);
-window.openLeadStatusModal = Leads.openLeadStatusModal(state, leadStatusContext);
-window.openLeadStatusModalFromDrawer = () => Leads.openLeadStatusModalFromDrawer(window.openLeadStatusModal);
-window.closeLeadStatusModal = () => Leads.closeLeadStatusModal(leadStatusContext);
-window.submitLeadStatusForm = () => Leads.submitLeadStatusForm(state, leadStatusContext, apiAvailable, refreshFromApi, renderAll, populatePersonaFilter);
-window.viewLead = Leads.viewLead(state);
-window.closeLeadDrawer = Leads.closeLeadDrawer;
-window.viewTopLead = () => Leads.viewTopLead(topLeadId, window.viewLead);
-window.archiveLead = Leads.archiveLead(state, apiAvailable, refreshFromApi, renderAll);
-window.completeFollowUp = Leads.completeFollowUp(state, apiAvailable, refreshFromApi, renderAll, populatePersonaFilter);
-window.exportLeads = () => Leads.exportLeads(state);
+  // Lead management
+  window.openAddLeadModal = Leads.openAddLeadModal;
+  window.closeAddLeadModal = Leads.closeAddLeadModal;
+  window.addLead = () => Leads.addLead(state, apiAvailable, refreshFromApi, renderAll);
+  window.openLeadStatusModal = Leads.openLeadStatusModal(state, leadStatusContext);
+  window.openLeadStatusModalFromDrawer = () => Leads.openLeadStatusModalFromDrawer(window.openLeadStatusModal);
+  window.closeLeadStatusModal = () => Leads.closeLeadStatusModal(leadStatusContext);
+  window.submitLeadStatusForm = () => Leads.submitLeadStatusForm(state, leadStatusContext, apiAvailable, refreshFromApi, renderAll, populatePersonaFilter);
+  window.viewLead = Leads.viewLead(state);
+  window.closeLeadDrawer = Leads.closeLeadDrawer;
+  window.viewTopLead = () => Leads.viewTopLead(topLeadId, window.viewLead);
+  window.archiveLead = Leads.archiveLead(state, apiAvailable, refreshFromApi, renderAll);
+  window.completeFollowUp = Leads.completeFollowUp(state, apiAvailable, refreshFromApi, renderAll, populatePersonaFilter);
+  window.exportLeads = () => Leads.exportLeads(state);
 
-// Corporate management
-window.openCorporateModal = Corporate.openCorporateModal(state, corporateEditIndex);
-window.closeCorporateModal = () => Corporate.closeCorporateModal(corporateEditIndex);
-window.submitCorporateForm = () => Corporate.submitCorporateForm(state, corporateEditIndex, apiAvailable, refreshFromApi, renderAll);
-window.editCorporateTarget = Corporate.editCorporateTarget(window.openCorporateModal);
-window.contactCorporate = Corporate.contactCorporate;
+  // Corporate management
+  window.openCorporateModal = Corporate.openCorporateModal(state, corporateEditIndex);
+  window.closeCorporateModal = () => Corporate.closeCorporateModal(corporateEditIndex);
+  window.submitCorporateForm = () => Corporate.submitCorporateForm(state, corporateEditIndex, apiAvailable, refreshFromApi, renderAll);
+  window.editCorporateTarget = Corporate.editCorporateTarget(window.openCorporateModal);
+  window.contactCorporate = Corporate.contactCorporate;
 
-// Data Hub
-window.mergeDuplicate = DataHub.mergeDuplicate(apiAvailable, refreshFromApi, refreshDedupes);
+  // Data Hub
+  window.mergeDuplicate = DataHub.mergeDuplicate(apiAvailable, refreshFromApi, refreshDedupes);
 
-// Automation
-window.toggleAutomationStatus = Automation.toggleAutomationStatus(apiAvailable, refreshAutomations);
-window.deleteAutomation = Automation.deleteAutomation(apiAvailable, refreshAutomations);
-window.completeTaskAction = Automation.completeTaskAction(apiAvailable, refreshTasks);
+  // Automation
+  window.toggleAutomationStatus = Automation.toggleAutomationStatus(apiAvailable, refreshAutomations);
+  window.deleteAutomation = Automation.deleteAutomation(apiAvailable, refreshAutomations);
+  window.completeTaskAction = Automation.completeTaskAction(apiAvailable, refreshTasks);
 
-// Operations
-window.openConnectorModal = Operations.openConnectorModal;
-window.closeConnectorModal = Operations.closeConnectorModal;
-window.submitConnectorForm = submitConnectorForm;
-window.openApiKeyModal = Operations.openApiKeyModal;
-window.closeApiKeyModal = Operations.closeApiKeyModal;
-window.submitApiKeyForm = submitApiKeyForm;
-window.runIngestionJob = Operations.runIngestionJob(apiAvailable, refreshOperationsConsole);
-window.toggleIngestionJob = Operations.toggleIngestionJob(apiAvailable, refreshOperationsConsole);
-window.refreshConnector = Operations.refreshConnector(refreshOperationsConsole);
-window.importCsvInteractions = () => Operations.importCsvInteractions(apiAvailable, refreshInteractions, refreshOperationsConsole);
-window.importIcsCalendar = () => Operations.importIcsCalendar(apiAvailable, refreshInteractions);
-window.revokeApiKey = Operations.revokeApiKey(apiAvailable, refreshOperationsConsole);
-window.copyFormEmbed = Operations.copyFormEmbed(apiAvailable);
+  // Operations
+  window.openConnectorModal = Operations.openConnectorModal;
+  window.closeConnectorModal = Operations.closeConnectorModal;
+  window.submitConnectorForm = submitConnectorForm;
+  window.openApiKeyModal = Operations.openApiKeyModal;
+  window.closeApiKeyModal = Operations.closeApiKeyModal;
+  window.submitApiKeyForm = submitApiKeyForm;
+  window.runIngestionJob = Operations.runIngestionJob(apiAvailable, refreshOperationsConsole);
+  window.toggleIngestionJob = Operations.toggleIngestionJob(apiAvailable, refreshOperationsConsole);
+  window.refreshConnector = Operations.refreshConnector(refreshOperationsConsole);
+  window.importCsvInteractions = () => Operations.importCsvInteractions(apiAvailable, refreshInteractions, refreshOperationsConsole);
+  window.importIcsCalendar = () => Operations.importIcsCalendar(apiAvailable, refreshInteractions);
+  window.revokeApiKey = Operations.revokeApiKey(apiAvailable, refreshOperationsConsole);
+  window.copyFormEmbed = Operations.copyFormEmbed(apiAvailable);
 
-// Settings
-window.refreshSettingsFromApi = refreshSettingsFromApi;
-window.savePersonaSettings = savePersonaSettings;
-window.savePreferenceSettings = savePreferenceSettings;
-window.saveApiBaseOverride = Settings.saveApiBaseOverride;
-window.clearApiBaseOverride = Settings.clearApiBaseOverride;
-window.saveAuthSettings = saveAuthSettings;
-window.clearAuthSettings = clearAuthSettings;
-window.resetSettingsToDefaults = resetSettingsToDefaults;
+  // Settings
+  window.refreshSettingsFromApi = refreshSettingsFromApi;
+  window.savePersonaSettings = savePersonaSettings;
+  window.savePreferenceSettings = savePreferenceSettings;
+  window.saveApiBaseOverride = Settings.saveApiBaseOverride;
+  window.clearApiBaseOverride = Settings.clearApiBaseOverride;
+  window.saveAuthSettings = saveAuthSettings;
+  window.clearAuthSettings = clearAuthSettings;
+  window.resetSettingsToDefaults = resetSettingsToDefaults;
 
-// Dashboard & Grants
-window.logSampleActivity = () => Dashboard.logSampleActivity(
-  (activity) => State.addActivity(state, activity),
-  persistState,
-  () => Dashboard.renderActivities(state),
-  Utils.createToast
-);
-window.generateReport = Grants.generateReport(state);
-window.downloadReportPDF = Grants.downloadReportPDF;
+  // Dashboard & Grants
+  window.logSampleActivity = () => Dashboard.logSampleActivity(
+    (activity) => State.addActivity(state, activity),
+    persistState,
+    () => Dashboard.renderActivities(state),
+    Utils.createToast
+  );
+  window.generateReport = Grants.generateReport(state);
+  window.downloadReportPDF = Grants.downloadReportPDF;
 
-// Refresh & state
-window.refreshFromApi = refreshFromApi;
-window.refreshAutomations = refreshAutomations;
-window.refreshTasks = refreshTasks;
-window.refreshMap = refreshMap;
-window.refreshDedupes = refreshDedupes;
-window.refreshOperationsConsole = refreshOperationsConsole;
-window.resetState = resetState;
+  // Refresh & state
+  window.refreshFromApi = refreshFromApi;
+  window.refreshAutomations = refreshAutomations;
+  window.refreshTasks = refreshTasks;
+  window.refreshMap = refreshMap;
+  window.refreshDedupes = refreshDedupes;
+  window.refreshOperationsConsole = refreshOperationsConsole;
+  window.resetState = resetState;
 
-// Auth
-window.dismissAuthBanner = Auth.dismissAuthBanner;
-window.startAuthFlow = () => Auth.startAuthFlow(uiState, Utils.createToast, UI.switchToTab);
+  // Auth
+  window.dismissAuthBanner = Auth.dismissAuthBanner;
+  window.startAuthFlow = () => Auth.startAuthFlow(uiState, Utils.createToast, UI.switchToTab);
 
-// UI
-window.switchToTab = UI.switchToTab;
+  // UI
+  window.switchToTab = UI.switchToTab;
+}
 
 // ============================================================================
 // Start Application
 // ============================================================================
 
+exposeWindowFunctions();
+console.log('[HTI] Window functions exposed:', Object.keys(window).filter(k => k.includes('Lead') || k.includes('open') || k.includes('refresh')));
 startApp();
