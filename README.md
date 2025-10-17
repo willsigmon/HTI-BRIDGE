@@ -206,6 +206,31 @@ Enjoy the new HubZone-flavored cockpit! If you uncover issues, open the inspecto
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Quick Contribution Steps
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test thoroughly
+4. Commit: `git commit -m 'feat: Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+---
+
+## 📊 Project Status
+
+![CI](https://github.com/willsigmon/HTI-BRIDGE/actions/workflows/ci.yml/badge.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/willsigmon/HTI-BRIDGE)
+![GitHub issues](https://img.shields.io/github/issues/willsigmon/HTI-BRIDGE)
+
+**Live Demo:** [https://hti-bridge.vercel.app](https://hti-bridge.vercel.app) *(if deployment protection disabled)*
+
+---
+
 ### Curious about evaluating other CRMs?
 
 We maintain an automation-first playbook in `AGENTS.md` that guides agents (and humans) through building a Salesforce-free CRM alternatives evaluator—complete with scoring rubric, migration plan templates, and security checklists. Start there if you want a streamlined, less cluttered experience focused on comparative CRM research.

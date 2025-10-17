@@ -41,3 +41,4 @@ htmlcov/
 
 # Artifacts (optional - keep demo artifacts but ignore temporary outputs)
 artifacts/*.tmp
+.vercel
