@@ -1,202 +1,277 @@
-# HTI NewDash
+# AI Email Assistant - Jace.ai Clone
 
-Modernized CRM cockpit for HUBZone Technology Initiative. The stack now ships with:
+A free, multi-account AI email assistant inspired by Jace.ai. This application allows you to interact with your Gmail accounts using natural language, draft context-aware replies with inline editing, and send emails directly from the UI without opening Gmail.
 
-- **HTI Dashboard (static)** &mdash; the SPA in this directory, deployable to any static host.
-- **Express/LowDB API** under `server/` with ingestion jobs (Reddit, Data.gov, GSA Auctions, SAM.gov) plus connector tooling.
-- **Offline-ready UX** with a service worker, manifest, and responsive styles inspired by hubzonetech.org.
+## Features
 
-## Getting Started
+- **Multi-Account Support**: Connect and manage multiple Gmail accounts simultaneously
+- **AI-Powered Email Drafting**: Generate context-aware email replies using AI
+- **Inline Draft Editing**: Refine drafts on the fly with natural language instructions
+- **Semantic Email Search**: Ask questions about your email history using natural language
+- **Direct Sending**: Send emails straight from the interface without opening Gmail
+- **Vector Database**: Fast semantic search across all your emails
+- **Free to Use**: Runs entirely on your own hardware with no subscription fees
 
-### 1. Run the API locally
+## Architecture
 
-```bash
-cd server
-npm install
-npm run seed        # optional: reload sample data with dedup-ready entities
-npm run dev         # http://localhost:4000
-```
+The application consists of three main components:
 
-Create `server/.env` (values shown are safe defaults):
+1. **Backend (Python/FastAPI)**: Handles Gmail API integration, vector database, and AI processing
+2. **Frontend (HTML/CSS/JavaScript)**: Provides the chat-based user interface
+3. **AI Model**: Uses Gemini 2.5 Flash via OpenAI-compatible API for email drafting
 
-```
-PORT=4000
-HTI_DB_PATH=./data/hti.json
-HTI_REDDIT_SUBS=sysadmin,ITManagers
-HTI_DATAGOV_QUERY="computer donation"
-```
+## Prerequisites
 
-Additional keys (optional) unlock richer ingest feeds:
+- Python 3.11+ (already installed in this environment)
+- Google Cloud Console account (free)
+- Gmail account(s) you want to connect
 
-```
-HTI_GSA_API_KEY=your_gsa_key
-HTI_GSA_STATES=NC,SC,VA
-HTI_SAM_API_KEY=your_sam_api_key
-HTI_SAM_KEYWORDS="technology donation"
-HTI_SAM_AGENCY="DEPT OF DEFENSE"
-HTI_USA_KEYWORDS="information technology,computer,digital equity"
-HTI_USA_AWARD_TYPES="A,B,C,D"
-HTI_USA_START_DATE=2023-10-01
-HTI_USA_END_DATE=2025-09-23
-HTI_GOVDEALS_FEEDS="https://www.govdeals.com/rss/index.cfm?fa=RSS&init=11&site_type=general&CatID=20"
-HTI_GRANTS_KEYWORDS="digital equity|device donation|broadband adoption"
-HTI_GRANTS_MAX_RESULTS=40
-HTI_GRANTS_STATUSES="forecasted|posted"
-HTI_CORPREFRESH_STATES="TX,NC,CA"        # optional filter for corporate refresh monitor
-HTI_CORPREFRESH_MIN_QTY=200               # skip prospects under this device count
-HTI_CORPREFRESH_REQUIRE_ONSITE_PICKUP=false
-HTI_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
-HTI_SMTP_URL="smtp://user:pass@smtp.example.com:587"     # optional email transport
-HTI_NOTIFY_EMAIL_FROM=donations@hubzonetech.org
-HTI_NOTIFY_EMAILS="operations@hubzonetech.org,grants@hubzonetech.org"
-```
+## Setup Instructions
 
-### Optional authentication toggle
+### Step 1: Set Up Google Cloud Project
 
-Set `HTI_REQUIRE_AUTH=true` to force callers to include a trusted `x-user-id` header before any CRM payload is returned. Pair it with `HTI_AUTH_URL=https://sso.example.com/login` so the dashboard banner can direct users to the appropriate sign-in flow. Leave the flag unset (default) for demo or offline use.
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Gmail API:
+   - Go to "APIs & Services" > "Library"
+   - Search for "Gmail API"
+   - Click "Enable"
 
-### Quick smoke check
+### Step 2: Create OAuth 2.0 Credentials
 
-Verify the deployed API is returning live payloads before a demo:
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth client ID"
+3. If prompted, configure the OAuth consent screen:
+   - Choose "External" user type
+   - Fill in the required fields (app name, user support email, developer email)
+   - Add your email as a test user
+   - Add the following scopes:
+     - `https://www.googleapis.com/auth/gmail.readonly`
+     - `https://www.googleapis.com/auth/gmail.send`
+     - `https://www.googleapis.com/auth/gmail.modify`
+     - `https://www.googleapis.com/auth/gmail.labels`
+4. Back in Credentials, create OAuth client ID:
+   - Application type: "Desktop app"
+   - Name: "AI Email Assistant"
+5. Download the credentials JSON file
+6. Rename it to `credentials.json` and place it in the `credentials/` directory
 
-```bash
-cd server
-HTI_SMOKE_API="https://api.example.com/api" npm run smoke:bootstrap
-```
+### Step 3: Install Dependencies
 
-Pass `HTI_SMOKE_USER` if your proxy expects a specific user id header. The script prints lead counts, top opportunities, and ingestion job health.
-
-Automate the check by setting the `HTI_SMOKE_API_BASE` secret and enabling the `nightly-smoke-check` GitHub Action workflow (`.github/workflows/smoke-check.yml`).
-
-### 2. Serve the frontend
-
-Any static server will work. The UI auto-detects `/api`; override with `localStorage.setItem('hti-api-base', 'https://api.example.com')` if hosting separately.
+All dependencies are already installed in this environment. If you're running this elsewhere, use:
 
 ```bash
-npx serve .
+pip3 install google-api-python-client google-auth-oauthlib google-auth-httplib2 fastapi uvicorn chromadb sentence-transformers
 ```
 
-The service worker precaches core assets (`index.html`, `style.css`, `app.js`, icons) so the dashboard keeps working offline.
+### Step 4: Start the Application
 
-## Feature Highlights
+1. Navigate to the backend directory:
+   ```bash
+   cd /home/ubuntu/jace-clone/backend
+   ```
 
-- **Unified CRM Data Hub** – contacts, households, and companies roll up with dedupe intelligence and merge actions.
-- **Persona Intelligence** – every lead is auto-bucketed (Tech Refresh Donor, Government Surplus, Healthcare System, etc.) for filters, dashboards, and routing.
-- **Multi-pipeline kanban** – drag-style lanes (via click actions) for donation, grants, or partnership pipelines with probability-weighted forecasts.
-- **Automation Studio** – build stage-change automations that schedule follow-ups, log activities, and create task queues.
-- **Field Ops Map** – Leaflet map for routing pickups, with weighted markers and quick route summaries.
-- **Operations Console** – monitor ingestion jobs, register connectors, manage API keys, and grab embeddable intake forms.
-- **Settings Dashboard** – toggle personas, adjust weighting, set default owners, and manage feature switches without redeploying.
-- **PWA polish** – installable manifest, offline caching, and responsive layouts tuned for hubzonetech.org branding.
-- **Grant Governance** – Grants.gov feed with keyword badges, deep links, and a digital-literacy hours tracker aligned with the NC Digital Champion award.
-- **Automated Outreach** – persona-aware lead scoring, default owner routing, follow-up task creation, and Slack/email notifications when high-priority batches arrive.
+2. Start the server:
+   ```bash
+   python3.11 server.py
+   ```
 
-## Data Ingestion & Connectors
+3. Open your browser and navigate to:
+   ```
+   http://localhost:8000
+   ```
 
-### Scheduled jobs (cron-friendly)
+## Usage Guide
 
-```bash
-npm run sync:reddit   # r/sysadmin, r/ITManagers
-npm run sync:datagov  # catalog.data.gov
-npm run sync:gsa      # GSA surplus auctions
-npm run sync:sam      # SAM.gov opportunities (requires HTI_SAM_API_KEY)
-npm run sync:govdeals # GovDeals surplus RSS feeds (set HTI_GOVDEALS_FEEDS)
-npm run sync:grants   # Grants.gov opportunities -> grant milestones (links + keyword badges)
-npm run sync:corporate # Corporate refresh monitor -> national laptop refresh prospects
-npm run sync:usaspending  # USAspending awards (public federal IT contracts)
+### Adding Gmail Accounts
+
+1. Click the "+ Add Account" button in the sidebar
+2. Enter a unique identifier (e.g., "personal", "work")
+3. A browser window will open for Google OAuth authentication
+4. Log in and grant the requested permissions
+5. The account will appear in the sidebar
+
+### Fetching Emails
+
+Once an account is added, the system will automatically fetch recent emails. You can also:
+
+- Type "fetch emails" in the chat to manually fetch
+- The system will index emails in the background for semantic search
+
+### Drafting Replies
+
+**Method 1: From Email List**
+1. Ask to see emails (e.g., "Show me recent emails")
+2. Click "Draft Reply" on any email
+3. Enter your instruction (e.g., "Say I'm interested and ask for more details")
+4. The AI will generate a draft
+
+**Method 2: Direct Instruction**
+1. Type your instruction in the chat (e.g., "Draft a reply to John's email saying I'll be there")
+2. The AI will search for the relevant email and generate a draft
+
+### Refining Drafts
+
+In the draft editor:
+1. Review the generated draft
+2. Type refinement instructions (e.g., "make it more formal", "add a thank you")
+3. Click "Refine" to regenerate the draft
+4. Repeat until satisfied
+
+### Sending Emails
+
+1. Review the final draft
+2. Click "Send Email"
+3. Confirm the recipient
+4. The email will be sent from your Gmail account
+
+### Asking Questions
+
+Ask natural language questions about your emails:
+- "What did Sarah say about the project?"
+- "Show me emails from last week about the meeting"
+- "Did anyone respond to my proposal?"
+
+The AI will search your email history and provide answers with sources.
+
+### Composing New Emails
+
+Type instructions like:
+- "Compose an email to john@example.com about the meeting"
+- "Write a professional email introducing myself"
+
+The AI will generate a subject and body, which you can refine and send.
+
+## Project Structure
+
+```
+jace-clone/
+├── backend/
+│   ├── server.py              # FastAPI server
+│   ├── gmail_auth.py          # Gmail OAuth authentication
+│   ├── email_manager.py       # Email fetching and sending
+│   ├── vector_store.py        # ChromaDB vector database
+│   └── ai_assistant.py        # AI drafting and Q&A
+├── frontend/
+│   ├── index.html             # Main UI
+│   ├── styles.css             # Styling
+│   └── app.js                 # Frontend logic
+├── credentials/
+│   └── credentials.json       # Google OAuth credentials (you provide)
+├── data/
+│   ├── tokens/                # Stored OAuth tokens per account
+│   └── chroma/                # Vector database storage
+└── README.md                  # This file
 ```
 
-Runs are cursor-aware, lightly throttled, and log to the ingestion console with audit entries.
+## How It Works
 
-### Connector console
+### Authentication Flow
+1. User adds an account with a unique ID
+2. System initiates OAuth 2.0 flow with Google
+3. User grants permissions in browser
+4. System stores refresh token for future access
+5. Token is automatically refreshed when expired
 
-- Register Gmail/Outlook/CSV/ICS connectors for drip ingestion.
-- Paste CSV or ICS payloads directly in the UI to drip interactions; records feed the Data Hub timeline instantly.
-- API Keys page issues scoped tokens for partner intake forms (embed snippet available per form).
+### Email Processing Flow
+1. System fetches emails via Gmail API
+2. Email content is converted to vector embeddings
+3. Embeddings are stored in ChromaDB for fast semantic search
+4. When user asks a question, query is converted to embedding
+5. Similar emails are retrieved and sent to AI for answer generation
 
-## API Surface
+### Draft Generation Flow
+1. User provides instruction and email context
+2. System retrieves original email details
+3. AI model generates draft based on context and instruction
+4. User can refine draft with additional instructions
+5. Refined draft is regenerated by AI
+6. Final draft is sent via Gmail API
 
-### Core
-- `GET /api/bootstrap`
-- `GET /api/dashboard`
-- `GET /api/leads`
-- `POST /api/leads`
-- `PATCH /api/leads/:id`
-- `DELETE /api/leads/:id`
-- `POST /api/leads/:id/complete-follow-up`
-- `GET /api/corporate-targets`
-- `POST /api/corporate-targets`
-- `GET /api/milestones`
-- `GET /api/activities`
+## API Endpoints
 
-### Pipelines & Automations
-- `GET /api/pipelines`
-- `POST /api/pipelines`
-- `PATCH /api/pipelines/:id`
-- `POST /api/pipelines/:id/stages`
-- `PATCH /api/pipelines/:id/stages/:stageId`
-- `POST /api/pipelines/:id/assign`
-- `GET /api/pipelines/:id/board`
-- `GET /api/automations`
-- `POST /api/automations`
-- `PATCH /api/automations/:id`
-- `DELETE /api/automations/:id`
-- `GET /api/automations/:id/executions`
-- `GET /api/tasks`
-- `PATCH /api/tasks/:id/complete`
+The backend exposes the following REST API endpoints:
 
-### CRM Data Hub
-- `GET /api/entities`
-- `GET /api/entities/dedupe`
-- `POST /api/entities/:primaryId/merge`
-- `GET /api/interactions`
+- `GET /accounts` - List all authenticated accounts
+- `POST /accounts/add` - Add a new Gmail account
+- `DELETE /accounts/{account_id}` - Remove an account
+- `POST /emails/fetch` - Fetch emails from an account
+- `GET /emails/{account_id}/{message_id}` - Get email details
+- `POST /emails/draft` - Generate email draft
+- `POST /emails/compose` - Compose new email
+- `POST /emails/send` - Send an email
+- `POST /emails/search` - Semantic email search
+- `POST /ask` - Ask questions about emails
+- `GET /stats` - Get system statistics
 
-### Operations & Connectors
-- `GET /api/admin/ingestion`
-- `PATCH /api/admin/ingestion/:id`
-- `POST /api/admin/ingestion/:id/run`
-- `GET /api/connectors`
-- `POST /api/connectors`
-- `PATCH /api/connectors/:id`
-- `POST /api/connectors/import/csv`
-- `POST /api/connectors/import/ics`
+## Troubleshooting
 
-### Forms & Security
-- `GET /api/forms`
-- `POST /api/forms`
-- `PATCH /api/forms/:id`
-- `GET /api/forms/:id/embed`
-- `GET /api/security/users`
-- `GET /api/security/api-keys`
-- `POST /api/security/api-keys`
-- `DELETE /api/security/api-keys/:id`
+### "Credentials file not found"
+- Ensure `credentials.json` is in the `credentials/` directory
+- Verify the file is valid JSON from Google Cloud Console
 
-### Public Intake
-- `GET /external/forms/:slug.html`
-- `POST /external/intake/:slug` (requires API key)
+### "Authentication failed"
+- Check that Gmail API is enabled in Google Cloud Console
+- Verify your email is added as a test user in OAuth consent screen
+- Try removing and re-adding the account
 
-All routes respect role-based permissions; the default `hti-admin` owner seeded in LowDB has `*` scope.
+### "No emails showing"
+- Wait a moment after adding account for initial fetch
+- Check the stats in sidebar to see if emails are indexed
+- Try manually typing "fetch emails"
 
-## Deploying
+### "AI not responding"
+- Ensure the OpenAI API environment variables are set
+- Check that the model name in `ai_assistant.py` is correct
+- Verify internet connection for API calls
 
-1. Deploy `server/` (Render/Fly.io/Railway). Persist `HTI_DB_PATH` or swap to Postgres.
-2. Configure env vars and secrets (Reddit, Data.gov, GSA, SAM.gov, etc.).
-3. Serve the static dashboard (Vercel/Netlify/S3). If API lives elsewhere, set `window.__HTI_API_BASE__` before loading `app.js` or persist via localStorage.
-4. Schedule ingestion jobs (cron, GitHub Actions, or a managed worker).
-5. Optional: expose `/external/forms/:slug` on the API domain for partner embed usage.
+### "Can't send emails"
+- Verify Gmail API has send permissions enabled
+- Check that OAuth scopes include `gmail.send`
+- Ensure you're sending from an authenticated account
 
-## Extending
+## Security Notes
 
-- **Auth & multi-tenancy**: front a proxy (Clerk, Supabase) and map workspaces to JWT claims.
-- **Deeper enrichment**: plug SAM.gov, Crunchbase, Clearbit, etc., into the connector system for automated enrichment.
-- **Analytics**: ship metrics to Metabase/Redash or embed Superset charts via the new operations console.
-- **Mobile**: wrap the PWA in Capacitor for kiosk/field deployment.
-- **Lead sourcing**: browse `docs/data-sources.md` for free APIs and drip scrapes to plug into `sync:*` jobs.
+- OAuth tokens are stored locally in `data/tokens/`
+- Never share your `credentials.json` file
+- Tokens are encrypted by Google's auth library
+- Application runs entirely on your local machine
+- No data is sent to third parties except Google (for Gmail) and OpenAI API (for AI processing)
 
-Enjoy the new HubZone-flavored cockpit! If you uncover issues, open the inspector & look for toasts—everything now reports errors unobtrusively.
+## Limitations
 
----
+- Gmail API has rate limits (250 quota units per user per second)
+- Free tier of embedding model has usage limits
+- Vector database size depends on available disk space
+- AI model quality depends on the model used (Gemini 2.5 Flash in this case)
 
-### Curious about evaluating other CRMs?
+## Future Enhancements
 
-We maintain an automation-first playbook in `AGENTS.md` that guides agents (and humans) through building a Salesforce-free CRM alternatives evaluator—complete with scoring rubric, migration plan templates, and security checklists. Start there if you want a streamlined, less cluttered experience focused on comparative CRM research.
+Potential improvements you could add:
+
+- Outlook/Microsoft 365 support
+- Email scheduling
+- Template management
+- Attachment handling
+- Calendar integration
+- Mobile-responsive design
+- Desktop application packaging
+- Background email sync
+- Smart categorization
+- Email analytics
+
+## License
+
+This is a personal project for educational purposes. Respect Gmail API terms of service and usage limits.
+
+## Credits
+
+Inspired by [Jace.ai](https://jace.ai) by Zeta Labs.
+
+Built using:
+- FastAPI - Web framework
+- ChromaDB - Vector database
+- Sentence Transformers - Embeddings
+- Google Gmail API - Email access
+- OpenAI API - AI processing
+

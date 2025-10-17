@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Email Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>📧 Email AI</h1>
+            </div>
+            
+            <div class="accounts-section">
+                <h3>Accounts</h3>
+                <div id="accounts-list"></div>
+                <button class="btn-add-account" onclick="addAccount()">+ Add Account</button>
+            </div>
+            
+            <div class="stats-section">
+                <h3>Stats</h3>
+                <div id="stats">
+                    <p>Accounts: <span id="accounts-count">0</span></p>
+                    <p>Emails Indexed: <span id="emails-count">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chat Area -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>AI Email Assistant</h2>
+                    <p class="subtitle">Ask questions, draft replies, or compose new emails</p>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <p>👋 Hello! I'm your AI email assistant. I can help you:</p>
+                            <ul>
+                                <li>Answer questions about your emails</li>
+                                <li>Draft replies to emails</li>
+                                <li>Compose new emails</li>
+                                <li>Search through your email history</li>
+                            </ul>
+                            <p>Try asking me something like:</p>
+                            <ul>
+                                <li>"Show me recent emails from John"</li>
+                                <li>"Draft a reply to the latest email saying I'm interested"</li>
+                                <li>"What did Sarah say about the project?"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <textarea 
+                        id="chat-input" 
+                        placeholder="Ask a question or give an instruction..."
+                        rows="3"
+                    ></textarea>
+                    <button class="btn-send" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Draft Modal -->
+    <div id="draft-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Email Draft</h2>
+                <span class="close" onclick="closeDraftModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="draft-info">
+                    <p><strong>To:</strong> <span id="draft-to"></span></p>
+                    <p><strong>Subject:</strong> <span id="draft-subject"></span></p>
+                </div>
+                <div class="draft-editor">
+                    <textarea id="draft-body" rows="15"></textarea>
+                </div>
+                <div class="draft-refinement">
+                    <input 
+                        type="text" 
+                        id="refinement-input" 
+                        placeholder="Refine the draft (e.g., 'make it more formal', 'add a thank you')"
+                    />
+                    <button class="btn-refine" onclick="refineDraft()">Refine</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeDraftModal()">Cancel</button>
+                <button class="btn-send-email" onclick="sendDraft()">Send Email</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
+
