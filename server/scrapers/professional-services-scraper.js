@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - Professional Services Multi-Vertical Scraper
+ * HTI-BRIDGE CRM - Professional Services Multi-Vertical Scraper
  * Focuses on accessible, realistic laptop donors in NC/Southeast
  * 
  * Target Verticals:
@@ -754,7 +754,7 @@ export async function scrapeProfessionalServices() {
   let newLeads = 0;
   let errors = [];
   
-  console.log('🌉 BRIDGE CRM: Professional Services Multi-Vertical Scraper');
+  console.log('🌉 HTI-BRIDGE CRM: Professional Services Multi-Vertical Scraper');
   console.log('🎯 Targeting accessible, realistic laptop donors in NC/Southeast');
   console.log('📋 Verticals: Legal, Accounting, Healthcare, Public Safety, Real Estate, Engineering, Marketing, IT, Construction, Insurance, Nonprofit, Education, Hospitality, Manufacturing');
   

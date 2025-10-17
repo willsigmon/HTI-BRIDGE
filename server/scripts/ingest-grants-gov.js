@@ -17,7 +17,7 @@ const ROWS_PER_PAGE = Math.min(Number(process.env.HTI_GRANTS_PAGE_SIZE) || 20, 1
 const OPP_STATUSES = process.env.HTI_GRANTS_STATUSES || 'forecasted|posted';
 const SORT_BY = process.env.HTI_GRANTS_SORT_BY || 'closeDate|asc';
 const USER_AGENT =
-  process.env.HTI_GRANTS_USER_AGENT || 'hti-newdash-grants-ingestor/0.1 (contact: engineering@hubzonetech.org)';
+  process.env.HTI_GRANTS_USER_AGENT || 'hti-bridge-grants-ingestor/0.1 (contact: engineering@hubzonetech.org)';
 
 async function run() {
   const syncRun = startSyncRun(SOURCE);

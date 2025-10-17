@@ -1,4 +1,4 @@
-# BRIDGE CRM: Grant Discovery & Qualification System
+# HTI-BRIDGE CRM: Grant Discovery & Qualification System
 
 **Date**: October 17, 2025  
 **Purpose**: Automatically discover, match, and qualify HTI for relevant grants
@@ -7,7 +7,7 @@
 
 ## Overview
 
-The Grant Discovery System is a proactive feature within BRIDGE CRM that continuously monitors grant opportunities and automatically qualifies HTI based on mission alignment, geographic eligibility, capacity, and performance metrics.
+The Grant Discovery System is a proactive feature within HTI-BRIDGE CRM that continuously monitors grant opportunities and automatically qualifies HTI based on mission alignment, geographic eligibility, capacity, and performance metrics.
 
 ### Key Benefits
 
@@ -325,7 +325,7 @@ Similar to the lead swipe interface, but for grants:
 
 **Data Sources**:
 - HEARTS (donation/delivery data)
-- BRIDGE CRM (donor relationships)
+- HTI-BRIDGE CRM (donor relationships)
 - Financial system (budget actuals)
 - Impact surveys (recipient feedback)
 
@@ -596,14 +596,14 @@ class GrantDiscoveryDashboard {
 
 ---
 
-## Integration with BRIDGE CRM
+## Integration with HTI-BRIDGE CRM
 
 ### Unified Dashboard
 
-The Grant Discovery section integrates seamlessly with BRIDGE CRM:
+The Grant Discovery section integrates seamlessly with HTI-BRIDGE CRM:
 
 **Navigation**:
-- 🌉 BRIDGE Home
+- 🌉 HTI-BRIDGE Home
 - 👥 Leads (Donor acquisition)
 - 💰 **Grants** (Funding opportunities) ← NEW
 - 📊 Analytics
@@ -687,7 +687,7 @@ The Grant Discovery section integrates seamlessly with BRIDGE CRM:
 
 ## Conclusion
 
-The Grant Discovery & Qualification System transforms BRIDGE CRM from a donor acquisition tool into a comprehensive funding platform. By automatically discovering, matching, and qualifying grant opportunities, HTI can:
+The Grant Discovery & Qualification System transforms HTI-BRIDGE CRM from a donor acquisition tool into a comprehensive funding platform. By automatically discovering, matching, and qualifying grant opportunities, HTI can:
 
 1. **Never miss an opportunity** - Automated daily monitoring
 2. **Focus on the best fits** - AI-powered matching

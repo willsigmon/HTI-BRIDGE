@@ -1,6 +1,6 @@
 /**
  * Grants.gov API Integration
- * BRIDGE CRM - Grant Discovery System
+ * HTI-BRIDGE CRM - Grant Discovery System
  */
 
 import fetch from 'node-fetch';

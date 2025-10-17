@@ -14,7 +14,7 @@ async function fetchSubreddit(subreddit, after) {
   const url = `https://www.reddit.com/r/${subreddit}/new.json?${params.toString()}`;
   const res = await fetch(url, {
     headers: {
-      'User-Agent': 'hti-newdash-bot/0.1 (contact: engineering@hubzonetech.org)'
+      'User-Agent': 'hti-bridge-bot/0.1 (contact: engineering@hubzonetech.org)'
     }
   });
   if (!res.ok) {

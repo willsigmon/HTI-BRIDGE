@@ -7,7 +7,7 @@ import path from 'node:path';
 process.env.NODE_ENV = 'test';
 
 if (!process.env.HTI_DB_PATH) {
-  const tmpDir = path.join(os.tmpdir(), 'hti-newdash-grants-tests');
+  const tmpDir = path.join(os.tmpdir(), 'hti-bridge-grants-tests');
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
   }

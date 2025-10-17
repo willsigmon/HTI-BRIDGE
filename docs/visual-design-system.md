@@ -1,4 +1,4 @@
-# BRIDGE CRM - Visual Design System
+# HTI-BRIDGE CRM - Visual Design System
 
 **Business Relations & Impact Database for Giving Equipment**
 
@@ -114,7 +114,7 @@
 ### 1. Lead Pipeline Overview
 ```
 ┌─────────────────────────────────────────┐
-│ 🌉 BRIDGE Pipeline                      │
+│ 🌉 HTI-BRIDGE Pipeline                      │
 ├─────────────────────────────────────────┤
 │ ✨ New: 23        📧 Contacted: 45      │
 │ ✅ Qualified: 18  📄 Proposal: 12       │
@@ -302,5 +302,5 @@
 
 ---
 
-This visual design system makes BRIDGE CRM intuitive, scannable, and delightful to use while maintaining professional credibility for HTI's mission.
+This visual design system makes HTI-BRIDGE CRM intuitive, scannable, and delightful to use while maintaining professional credibility for HTI's mission.
 

@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - Analytics Dashboard
+ * HTI-BRIDGE CRM - Analytics Dashboard
  * Comprehensive analytics and reporting for donor pipeline
  */
 

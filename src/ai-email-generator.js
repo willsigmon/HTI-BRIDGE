@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - AI Email Generator
+ * HTI-BRIDGE CRM - AI Email Generator
  * Uses OpenAI to generate personalized outreach emails
  */
 

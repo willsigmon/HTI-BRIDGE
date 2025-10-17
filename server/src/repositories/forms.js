@@ -78,7 +78,7 @@ export function getIntakeFormBySlug(slug) {
 }
 
 export function generateEmbedSnippet(form) {
-  const baseUrl = process.env.FRONTEND_ORIGIN || 'https://newdash-azure.vercel.app';
+  const baseUrl = process.env.FRONTEND_ORIGIN || 'https://hti-bridge.vercel.app';
   return `<!-- HTI Intake Form Embed -->\n<div id="hti-intake-${form.slug}"></div>\n<script>
   (function(){
     const target = document.getElementById('hti-intake-${form.slug}');

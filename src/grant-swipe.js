@@ -1,6 +1,6 @@
 /**
  * Grant Swipe Interface
- * Tinder-style grant review for BRIDGE CRM
+ * Tinder-style grant review for HTI-BRIDGE CRM
  */
 
 class GrantSwipeInterface {

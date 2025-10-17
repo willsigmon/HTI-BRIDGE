@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hti-newdash-v1';
+const CACHE_NAME = 'hti-bridge-v1';
 const ASSETS = [
   '/',
   '/index.html',

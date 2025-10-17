@@ -87,7 +87,7 @@ async function run() {
     const url = buildUrl();
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'hti-newdash-sam-ingestor/0.1 (contact: engineering@hubzonetech.org)'
+        'User-Agent': 'hti-bridge-sam-ingestor/0.1 (contact: engineering@hubzonetech.org)'
       }
     });
     if (!res.ok) {

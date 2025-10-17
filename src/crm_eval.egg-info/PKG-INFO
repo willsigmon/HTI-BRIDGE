@@ -17,7 +17,7 @@ Requires-Dist: pytest-cov>=4.1; extra == "dev"
 Requires-Dist: ruff>=0.5; extra == "dev"
 Requires-Dist: black>=24.3; extra == "dev"
 
-# HTI NewDash
+# HTI-BRIDGE
 
 Modernized CRM cockpit for HUBZone Technology Initiative. The stack now ships with:
 

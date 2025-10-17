@@ -1,5 +1,5 @@
 {
-  "name": "hti-newdash-api",
+  "name": "hti-bridge-api",
   "version": "0.1.0",
   "type": "module",
   "main": "src/server.js",

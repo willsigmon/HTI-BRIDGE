@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - Gamification System
+ * HTI-BRIDGE CRM - Gamification System
  * Points, badges, leaderboards, and achievements
  */
 

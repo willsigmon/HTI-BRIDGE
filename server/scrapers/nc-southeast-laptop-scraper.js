@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - NC/Southeast Laptop Donor Scraper
+ * HTI-BRIDGE CRM - NC/Southeast Laptop Donor Scraper
  * Focused on HTI's $600K grant requirements: 5,000 Chromebooks for HUBZone communities
  * Prioritizes NC and Southeast regional companies with laptop donations
  */
@@ -512,7 +512,7 @@ export async function scrapeNCSoutheastLaptopDonors() {
   let newLeads = 0;
   let errors = [];
   
-  console.log('🌉 BRIDGE CRM: Starting NC/Southeast laptop donor scraper...');
+  console.log('🌉 HTI-BRIDGE CRM: Starting NC/Southeast laptop donor scraper...');
   console.log('🎯 Focus: HTI $600K grant - 5,000 Chromebooks for HUBZone communities');
   
   try {

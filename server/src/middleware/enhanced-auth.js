@@ -1,5 +1,5 @@
 /**
- * Enhanced Authentication Middleware for HTI NewDash CRM
+ * Enhanced Authentication Middleware for HTI-BRIDGE CRM
  * Provides JWT-based authentication, password hashing, and session management
  */
 
@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { getUserById, getUserByEmail, createUser, updateUserLastLogin } from '../repositories/security.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'hti-newdash-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'hti-bridge-secret-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 /**

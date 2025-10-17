@@ -1,5 +1,5 @@
 /**
- * BRIDGE CRM - Lead Swipe Interface
+ * HTI-BRIDGE CRM - Lead Swipe Interface
  * Tinder-style swipe interface for quick lead qualification
  */
 

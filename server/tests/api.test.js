@@ -8,7 +8,7 @@ import supertest from 'supertest';
 process.env.NODE_ENV = 'test';
 process.env.HTI_REQUIRE_AUTH = 'false';
 
-const tmpDir = path.join(os.tmpdir(), 'hti-newdash-tests');
+const tmpDir = path.join(os.tmpdir(), 'hti-bridge-tests');
 if (!fs.existsSync(tmpDir)) {
   fs.mkdirSync(tmpDir, { recursive: true });
 }

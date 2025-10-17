@@ -1,6 +1,6 @@
 {
-  "name": "HTI NewDash",
-  "short_name": "NewDash",
+  "name": "HTI-BRIDGE",
+  "short_name": "HTI-BRIDGE",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0f4c75",

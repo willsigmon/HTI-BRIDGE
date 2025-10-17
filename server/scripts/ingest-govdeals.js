@@ -37,7 +37,7 @@ async function run() {
         const feedLabel = parseFeedLabel(feedUrl);
         const response = await fetchWithTimeout(feedUrl, {
           headers: {
-            'User-Agent': 'hti-newdash-govdeals/0.1 (contact: engineering@hubzonetech.org)'
+            'User-Agent': 'hti-bridge-govdeals/0.1 (contact: engineering@hubzonetech.org)'
           }
         });
         if (!response.ok) {

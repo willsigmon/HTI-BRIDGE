@@ -1,6 +1,6 @@
 /**
  * Grant Discovery API Routes
- * BRIDGE CRM
+ * HTI-BRIDGE CRM
  */
 
 import express from 'express';

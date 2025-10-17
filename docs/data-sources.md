@@ -1,6 +1,6 @@
 # Lead & Enrichment Sources
 
-Curated list of data feeds you can wire into NewDash without paying for commercial prospecting tools. Each source is annotated with rate limits, integration notes, and ideas for persona tagging.
+Curated list of data feeds you can wire into HTI-BRIDGE without paying for commercial prospecting tools. Each source is annotated with rate limits, integration notes, and ideas for persona tagging.
 
 ## Always-on APIs (free)
 

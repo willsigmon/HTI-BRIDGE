@@ -1,4 +1,4 @@
-# HTI NewDash Memory Log
+# HTI-BRIDGE Memory Log
 
 _Last updated: 2025-09-23_
 

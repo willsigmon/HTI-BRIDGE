@@ -1,4 +1,4 @@
-# HEARTS (Knack) Integration Plan for BRIDGE CRM
+# HEARTS (Knack) Integration Plan for HTI-BRIDGE CRM
 
 ## What is HEARTS?
 
@@ -28,18 +28,18 @@
 
 2. **Webhooks** (mentioned in docs but limited documentation)
    - Real-time notifications when records change
-   - Push data from HEARTS to BRIDGE automatically
+   - Push data from HEARTS to HTI-BRIDGE automatically
 
 3. **Knack Flows** (Native integrations)
    - No-code bi-directional sync
    - Pre-built connectors for popular apps
 
-## Proposed BRIDGE ↔ HEARTS Integration
+## Proposed HTI-BRIDGE ↔ HEARTS Integration
 
 ### Architecture
 
 ```
-BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
+HTI-BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
      ↓                              ↓
   Scrapers                    Reimbursements
   Lead Swipe                  Marketing Requests
@@ -49,17 +49,17 @@ BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
 
 ### Integration Scenarios
 
-#### Scenario 1: One-Way Sync (BRIDGE → HEARTS)
-**Use Case**: Push qualified leads from BRIDGE to HEARTS for fulfillment
+#### Scenario 1: One-Way Sync (HTI-BRIDGE → HEARTS)
+**Use Case**: Push qualified leads from HTI-BRIDGE to HEARTS for fulfillment
 
 **Flow**:
-1. Lead is qualified in BRIDGE (marked as "Committed" or "Donated")
-2. BRIDGE automatically creates a record in HEARTS
+1. Lead is qualified in HTI-BRIDGE (marked as "Committed" or "Donated")
+2. HTI-BRIDGE automatically creates a record in HEARTS
 3. HEARTS tracks the donation fulfillment process
 4. HTI staff use HEARTS for logistics, pickup scheduling, processing
 
 **Benefits**:
-- BRIDGE stays focused on donor acquisition
+- HTI-BRIDGE stays focused on donor acquisition
 - HEARTS handles operations
 - Clean separation of concerns
 
@@ -67,23 +67,23 @@ BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
 **Use Case**: Keep donor status synchronized between systems
 
 **Flow**:
-1. Lead qualified in BRIDGE → Creates donor record in HEARTS
-2. Donation received in HEARTS → Updates lead status in BRIDGE
-3. Chromebooks delivered in HEARTS → Updates grant progress in BRIDGE
+1. Lead qualified in HTI-BRIDGE → Creates donor record in HEARTS
+2. Donation received in HEARTS → Updates lead status in HTI-BRIDGE
+3. Chromebooks delivered in HEARTS → Updates grant progress in HTI-BRIDGE
 
 **Benefits**:
 - Real-time status updates
 - Unified reporting
 - Grant progress tracking
 
-#### Scenario 3: BRIDGE as Dashboard for HEARTS Data
-**Use Case**: Visualize HEARTS data in BRIDGE's analytics
+#### Scenario 3: HTI-BRIDGE as Dashboard for HEARTS Data
+**Use Case**: Visualize HEARTS data in HTI-BRIDGE's analytics
 
 **Flow**:
-1. BRIDGE reads donation data from HEARTS via API
-2. BRIDGE displays grant progress, impact metrics
-3. BRIDGE shows recipient data, delivery stats
-4. BRIDGE creates reports combining donor leads + fulfillment data
+1. HTI-BRIDGE reads donation data from HEARTS via API
+2. HTI-BRIDGE displays grant progress, impact metrics
+3. HTI-BRIDGE shows recipient data, delivery stats
+4. HTI-BRIDGE creates reports combining donor leads + fulfillment data
 
 **Benefits**:
 - Unified view of entire pipeline (lead → donation → delivery)
@@ -92,15 +92,15 @@ BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
 
 ### Recommended Approach
 
-**Phase 1: One-Way Sync (BRIDGE → HEARTS)**
+**Phase 1: One-Way Sync (HTI-BRIDGE → HEARTS)**
 - Simplest to implement
 - Clear separation of concerns
-- BRIDGE = donor acquisition, HEARTS = operations
+- HTI-BRIDGE = donor acquisition, HEARTS = operations
 - Low risk of data conflicts
 
 **Phase 2: Read HEARTS Data for Analytics**
 - Pull donation/delivery data from HEARTS
-- Display in BRIDGE analytics dashboard
+- Display in HTI-BRIDGE analytics dashboard
 - Track progress toward 5,000 Chromebook goal
 - Generate unified reports
 
@@ -115,7 +115,7 @@ BRIDGE CRM (Donor Leads)  ←→  HEARTS (Operations)
 - [ ] HEARTS API credentials (API key)
 - [ ] HEARTS app ID
 - [ ] Object IDs for relevant tables (donors, donations, etc.)
-- [ ] Field mappings (BRIDGE fields → HEARTS fields)
+- [ ] Field mappings (HTI-BRIDGE fields → HEARTS fields)
 - [ ] Webhook URLs (if using webhooks)
 
 ### API Endpoints
@@ -147,10 +147,10 @@ DELETE /objects/{object_key}/records/{record_id}
 
 ### Data Mapping
 
-**BRIDGE Lead → HEARTS Donor**:
+**HTI-BRIDGE Lead → HEARTS Donor**:
 ```javascript
 {
-  // BRIDGE CRM fields
+  // HTI-BRIDGE CRM fields
   company: "Smith Anderson Law Firm",
   contact: "John Smith",
   email: "jsmith@smithlaw.com",
@@ -165,7 +165,7 @@ DELETE /objects/{object_key}/records/{record_id}
   contact_phone: phone,
   donation_status: status,
   expected_units: expectedChromebooks,
-  source: "BRIDGE CRM",
+  source: "HTI-BRIDGE CRM",
   date_qualified: new Date()
 }
 ```
@@ -181,16 +181,16 @@ DELETE /objects/{object_key}/records/{record_id}
 ## Next Steps
 
 1. **Get HEARTS credentials** from HTI admin
-2. **Map data structures** between BRIDGE and HEARTS
-3. **Build sync module** in BRIDGE server
+2. **Map data structures** between HTI-BRIDGE and HEARTS
+3. **Build sync module** in HTI-BRIDGE server
 4. **Test with staging data** before production
 5. **Deploy and monitor** integration
 
 ## Questions for HTI Team
 
 1. What data currently lives in HEARTS?
-2. Do you want BRIDGE to push qualified leads to HEARTS?
-3. Should BRIDGE read donation/delivery data from HEARTS?
+2. Do you want HTI-BRIDGE to push qualified leads to HEARTS?
+3. Should HTI-BRIDGE read donation/delivery data from HEARTS?
 4. Who manages HEARTS API credentials?
 5. What's the daily API call limit on your Knack plan?
 6. Are there any existing integrations with HEARTS we should know about?
@@ -198,6 +198,6 @@ DELETE /objects/{object_key}/records/{record_id}
 ---
 
 **Status**: Research complete, ready to implement once credentials are provided
-**Priority**: Medium (not blocking core BRIDGE CRM functionality)
+**Priority**: Medium (not blocking core HTI-BRIDGE CRM functionality)
 **Estimated Effort**: 2-3 days for Phase 1 implementation
 

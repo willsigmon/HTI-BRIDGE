@@ -644,7 +644,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-if (process.env.NODE_ENV !== 'test') {
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION);
+
+if (process.env.NODE_ENV !== 'test' && !isServerless) {
   app.listen(PORT, () => {
     console.log(`HTI API listening on http://localhost:${PORT}`);
   });

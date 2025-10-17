@@ -12,7 +12,7 @@ async function searchDataGov() {
   const url = new URL('https://catalog.data.gov/api/3/action/package_search');
   url.searchParams.set('q', QUERY);
   url.searchParams.set('rows', ROWS.toString());
-  const res = await fetch(url.href, { headers: { 'User-Agent': 'hti-newdash/0.1 (contact: engineering@hubzonetech.org)' } });
+  const res = await fetch(url.href, { headers: { 'User-Agent': 'hti-bridge/0.1 (contact: engineering@hubzonetech.org)' } });
   if (!res.ok) {
     throw new Error(`data.gov request failed ${res.status}`);
   }

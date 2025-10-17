@@ -1,4 +1,4 @@
-# BRIDGE CRM - Comprehensive Data Sources & Vetting Strategy
+# HTI-BRIDGE CRM - Comprehensive Data Sources & Vetting Strategy
 
 **Business Relations & Impact Database for Giving Equipment**
 
@@ -286,5 +286,5 @@
 
 ---
 
-This comprehensive strategy ensures BRIDGE CRM aggregates high-quality, verified leads from multiple sources with robust vetting to maximize HTI's donor outreach effectiveness.
+This comprehensive strategy ensures HTI-BRIDGE CRM aggregates high-quality, verified leads from multiple sources with robust vetting to maximize HTI's donor outreach effectiveness.
 

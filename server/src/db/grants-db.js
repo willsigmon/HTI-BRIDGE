@@ -1,6 +1,6 @@
 /**
  * Grant Database Wrapper
- * Uses lowdb for consistency with rest of BRIDGE CRM
+ * Uses lowdb for consistency with rest of HTI-BRIDGE CRM
  */
 
 import crypto from 'node:crypto';

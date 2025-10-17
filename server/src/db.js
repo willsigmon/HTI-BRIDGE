@@ -9,11 +9,30 @@ import { createDefaultSettings } from '../../shared/config/statusPersonas.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const defaultPath = path.resolve(__dirname, '..', 'data', 'hti.json');
-const configuredPath = process.env.HTI_DB_PATH
+const repoSnapshotPath = path.resolve(__dirname, '..', 'data', 'hti.json');
+const prefersTmpStorage = Boolean((process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION) && !process.env.HTI_DB_PATH);
+const tmpPath = path.join('/tmp', 'hti-bridge-db.json');
+const resolvedPath = process.env.HTI_DB_PATH
   ? path.resolve(process.cwd(), process.env.HTI_DB_PATH)
-  : defaultPath;
-const DB_PATH = configuredPath;
+  : prefersTmpStorage
+    ? tmpPath
+    : repoSnapshotPath;
+
+if (prefersTmpStorage && !fs.existsSync(tmpPath)) {
+  try {
+    const tmpDir = path.dirname(tmpPath);
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    }
+    if (fs.existsSync(repoSnapshotPath)) {
+      fs.copyFileSync(repoSnapshotPath, tmpPath);
+    }
+  } catch (error) {
+    console.warn('Unable to prime tmp database path, falling back to repo snapshot.', error);
+  }
+}
+
+const DB_PATH = resolvedPath;
 
 const defaultData = {
   leads: [],

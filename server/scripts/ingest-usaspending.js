@@ -40,7 +40,7 @@ async function run() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'hti-newdash-usaspending/0.1 (contact: engineering@hubzonetech.org)'
+          'User-Agent': 'hti-bridge-usaspending/0.1 (contact: engineering@hubzonetech.org)'
         },
         body: JSON.stringify(payload)
       });

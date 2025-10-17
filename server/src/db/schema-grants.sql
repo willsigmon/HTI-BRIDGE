@@ -1,5 +1,5 @@
 -- Grant Discovery System Database Schema
--- BRIDGE CRM - HUBZone Technology Initiative
+-- HTI-BRIDGE CRM - HUBZone Technology Initiative
 
 -- Grants table - stores all discovered grant opportunities
 CREATE TABLE IF NOT EXISTS grants (
