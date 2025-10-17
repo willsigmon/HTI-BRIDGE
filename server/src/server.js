@@ -50,6 +50,7 @@ import {
   generateEmbedSnippet
 } from './repositories/forms.js';
 import { listAuditLog, summarizeAuditLog } from './repositories/audit.js';
+import grantsRouter from './routes/grants.js';
 import { getSettings, updateSettings as saveSettings } from './repositories/settings.js';
 
 ensureDefaultPipelines();
@@ -603,6 +604,9 @@ app.get('/api/sync-log', requirePermission('ingestion:read'), (req, res) => {
   const limit = Number(req.query.limit) || 50;
   res.json(listSyncLog(limit));
 });
+
+// Grant Discovery Routes
+app.use('/api/grants', grantsRouter);
 
 app.get('/external/forms/:slug.html', (req, res) => {
   const form = getIntakeFormBySlug(req.params.slug);
