@@ -96,34 +96,58 @@ async function safeParseError(response) {
 }
 
 // Bootstrap data from API on app start
-export async function bootstrapData(state, apiAvailable, DEFAULT_SETTINGS, uiState, renderAll, populatePersonaFilter) {
+export async function bootstrapData(
+  state,
+  apiAvailability,
+  storageAvailability,
+  DEFAULT_SETTINGS,
+  uiState,
+  renderAll,
+  populatePersonaFilter,
+  fallbackData
+) {
   try {
     const response = await apiRequest('/bootstrap', { method: 'GET' });
     const payload = await response.json();
     const newState = hydrateStateFromBootstrap(payload, state, DEFAULT_SETTINGS, uiState, populatePersonaFilter);
-    apiAvailable = true;
+    if (apiAvailability && typeof apiAvailability === 'object') {
+      apiAvailability.value = true;
+    }
     clearAuthState();
-    return { state: newState, apiAvailable };
+    return { state: newState, apiAvailable: apiAvailability };
   } catch (error) {
     console.warn('API bootstrap unavailable, falling back to local dataset.', error);
-    apiAvailable = false;
+    if (apiAvailability && typeof apiAvailability === 'object') {
+      apiAvailability.value = false;
+    }
     const handled = handleAuthError(error, 'Sign in to load live CRM data from the HTI API.');
     if (handled) {
       notifyAuthRequired('Authenticate to resume live data sync.');
     }
-    state = loadState() ?? createDefaultState();
-    return { state, apiAvailable };
+    const dataset = fallbackData || (typeof window !== 'undefined' ? window.__HTI_BOOTSTRAP_FIXTURE__ : null);
+    state = loadState(
+      apiAvailability?.value ?? false,
+      storageAvailability?.value ?? true,
+      dataset,
+      DEFAULT_SETTINGS
+    ) ?? createDefaultState(dataset, DEFAULT_SETTINGS);
+    return { state, apiAvailable: apiAvailability };
   }
 }
 
 // Refresh data from API
 export async function refreshFromApi(state, apiAvailable, DEFAULT_SETTINGS, uiState, renderAll, populatePersonaFilter) {
-  if (!apiAvailable) return { state, apiAvailable };
+  const isAvailable = typeof apiAvailable === 'object' ? apiAvailable.value : apiAvailable;
+  if (!isAvailable) {
+    return { state, apiAvailable };
+  }
   try {
     const response = await apiRequest('/bootstrap', { method: 'GET' });
     const payload = await response.json();
     const newState = hydrateStateFromBootstrap(payload, state, DEFAULT_SETTINGS, uiState, populatePersonaFilter);
-    apiAvailable = true;
+    if (apiAvailable && typeof apiAvailable === 'object') {
+      apiAvailable.value = true;
+    }
     clearAuthState();
     renderAll();
     updateLastRefreshed();
@@ -134,6 +158,9 @@ export async function refreshFromApi(state, apiAvailable, DEFAULT_SETTINGS, uiSt
       return { state, apiAvailable };
     }
     console.warn('Unable to refresh from API, retaining current client state.', error);
+    if (apiAvailable && typeof apiAvailable === 'object') {
+      apiAvailable.value = false;
+    }
     return { state, apiAvailable };
   }
 }

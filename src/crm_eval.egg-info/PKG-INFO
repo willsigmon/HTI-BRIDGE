@@ -68,6 +68,8 @@ HTI_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 HTI_SMTP_URL="smtp://user:pass@smtp.example.com:587"     # optional email transport
 HTI_NOTIFY_EMAIL_FROM=donations@hubzonetech.org
 HTI_NOTIFY_EMAILS="operations@hubzonetech.org,grants@hubzonetech.org"
+
+By default the database starts empty. Run `npm run seed` locally if you want to load the optional sample workspace; skip it for production.
 ```
 
 ### Optional authentication toggle
@@ -96,6 +98,13 @@ npx serve .
 ```
 
 The service worker precaches core assets (`index.html`, `style.css`, `app.js`, icons) so the dashboard keeps working offline.
+
+### Deploying to Vercel (or any serverless target)
+
+- The Express app exposes a single handler via `/api/index.js`; Vercel rewrites `/api/*` to that handler using `vercel.json`.
+- On serverless runtimes we automatically store the LowDB file inside `/tmp/hti-bridge-db.json`. Override with `HTI_DB_PATH` if you prefer an external volume or managed datastore.
+- Deployments boot with an empty workspace. Populate data via your ingestion jobs or run `npm run seed` manually in environments where sample content is useful.
+- Add any required environment variables (e.g., API keys above) in the Vercel dashboard so the ingestion jobs and smoke tests can run remotely.
 
 ## Feature Highlights
 

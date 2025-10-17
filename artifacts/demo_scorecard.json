@@ -1,0 +1,1564 @@
+{
+  "profile": {
+    "budget_per_user_per_month": 30,
+    "company_size": "10-50",
+    "industry": "services",
+    "must_have": [
+      "email_calendar_sync",
+      "basic_automation"
+    ],
+    "nice_to_have": [
+      "helpdesk",
+      "predictive_scoring"
+    ],
+    "regions": [
+      "US"
+    ]
+  },
+  "scales": {
+    "0": "absent",
+    "3": "adequate",
+    "5": "excellent"
+  },
+  "schema": "crm-eval-scorecard/v1",
+  "shortlist": [
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "customization_extensibility": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 5.0,
+          "weight": 7.0,
+          "weighted": 7.0
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 5.0,
+          "weight": 5.0,
+          "weighted": 5.0
+        },
+        "usability_admin": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "helpdesk",
+        "chat",
+        "knowledge_base"
+      ],
+      "missing_metrics": [],
+      "name": "HubSpot CRM",
+      "notes": [
+        "Strengths: unified marketing/sales platform, deep automation.",
+        "Trade-offs: advanced automation pricing escalates quickly."
+      ],
+      "rank": 1,
+      "score": 91.8,
+      "slug": "hubspot",
+      "strengths": [
+        "unified marketing/sales platform, deep automation."
+      ],
+      "tradeoffs": [
+        "advanced automation pricing escalates quickly."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 5.0,
+          "weight": 5.0,
+          "weighted": 5.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "enterprise_rbac",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "Microsoft Dynamics 365 Sales",
+      "notes": [
+        "Strengths: deep enterprise extensibility across Power Platform.",
+        "Trade-offs: setup complexity and licensing management."
+      ],
+      "rank": 2,
+      "score": 88.6,
+      "slug": "dynamics365",
+      "strengths": [
+        "deep enterprise extensibility across Power Platform."
+      ],
+      "tradeoffs": [
+        "setup complexity and licensing management."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "predictive_scoring"
+      ],
+      "missing_metrics": [],
+      "name": "Creatio",
+      "notes": [
+        "Strengths: unified platform for sales, service, and marketing with strong low-code tools.",
+        "Trade-offs: requires enablement to govern citizen developer workflows."
+      ],
+      "rank": 3,
+      "score": 83.6,
+      "slug": "creatio",
+      "strengths": [
+        "unified platform for sales, service, and marketing with strong low-code tools."
+      ],
+      "tradeoffs": [
+        "requires enablement to govern citizen developer workflows."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "SugarCRM",
+      "notes": [
+        "Strengths: mature platform with deep customization and deployment flexibility.",
+        "Trade-offs: UI feels older; configuration and maintenance require skilled admins."
+      ],
+      "rank": 4,
+      "score": 81.2,
+      "slug": "sugarcrm",
+      "strengths": [
+        "mature platform with deep customization and deployment flexibility."
+      ],
+      "tradeoffs": [
+        "UI feels older; configuration and maintenance require skilled admins."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "predictive_scoring",
+        "inventory_management"
+      ],
+      "missing_metrics": [],
+      "name": "Zoho CRM",
+      "notes": [
+        "Strengths: highly customizable, broad app ecosystem.",
+        "Trade-offs: UI less polished; advanced features need training."
+      ],
+      "rank": 5,
+      "score": 80.2,
+      "slug": "zoho",
+      "strengths": [
+        "highly customizable, broad app ecosystem."
+      ],
+      "tradeoffs": [
+        "UI less polished; advanced features need training."
+      ]
+    }
+  ],
+  "vendors": [
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "customization_extensibility": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 5.0,
+          "weight": 7.0,
+          "weighted": 7.0
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 5.0,
+          "weight": 5.0,
+          "weighted": 5.0
+        },
+        "usability_admin": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "helpdesk",
+        "chat",
+        "knowledge_base"
+      ],
+      "missing_metrics": [],
+      "name": "HubSpot CRM",
+      "notes": [
+        "Strengths: unified marketing/sales platform, deep automation.",
+        "Trade-offs: advanced automation pricing escalates quickly."
+      ],
+      "rank": 1,
+      "score": 91.8,
+      "slug": "hubspot",
+      "strengths": [
+        "unified marketing/sales platform, deep automation."
+      ],
+      "tradeoffs": [
+        "advanced automation pricing escalates quickly."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 5.0,
+          "weight": 5.0,
+          "weighted": 5.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "enterprise_rbac",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "Microsoft Dynamics 365 Sales",
+      "notes": [
+        "Strengths: deep enterprise extensibility across Power Platform.",
+        "Trade-offs: setup complexity and licensing management."
+      ],
+      "rank": 2,
+      "score": 88.6,
+      "slug": "dynamics365",
+      "strengths": [
+        "deep enterprise extensibility across Power Platform."
+      ],
+      "tradeoffs": [
+        "setup complexity and licensing management."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 5.0,
+          "weight": 12.0,
+          "weighted": 12.0
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "predictive_scoring"
+      ],
+      "missing_metrics": [],
+      "name": "Creatio",
+      "notes": [
+        "Strengths: unified platform for sales, service, and marketing with strong low-code tools.",
+        "Trade-offs: requires enablement to govern citizen developer workflows."
+      ],
+      "rank": 3,
+      "score": 83.6,
+      "slug": "creatio",
+      "strengths": [
+        "unified platform for sales, service, and marketing with strong low-code tools."
+      ],
+      "tradeoffs": [
+        "requires enablement to govern citizen developer workflows."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "SugarCRM",
+      "notes": [
+        "Strengths: mature platform with deep customization and deployment flexibility.",
+        "Trade-offs: UI feels older; configuration and maintenance require skilled admins."
+      ],
+      "rank": 4,
+      "score": 81.2,
+      "slug": "sugarcrm",
+      "strengths": [
+        "mature platform with deep customization and deployment flexibility."
+      ],
+      "tradeoffs": [
+        "UI feels older; configuration and maintenance require skilled admins."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "predictive_scoring",
+        "inventory_management"
+      ],
+      "missing_metrics": [],
+      "name": "Zoho CRM",
+      "notes": [
+        "Strengths: highly customizable, broad app ecosystem.",
+        "Trade-offs: UI less polished; advanced features need training."
+      ],
+      "rank": 5,
+      "score": 80.2,
+      "slug": "zoho",
+      "strengths": [
+        "highly customizable, broad app ecosystem."
+      ],
+      "tradeoffs": [
+        "UI less polished; advanced features need training."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "customization_extensibility": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "predictive_scoring",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "Freshsales",
+      "notes": [
+        "Strengths: native telephony + marketing in one UI.",
+        "Trade-offs: marketplace smaller than HubSpot/Salesforce."
+      ],
+      "rank": 6,
+      "score": 79.0,
+      "slug": "freshsales",
+      "strengths": [
+        "native telephony + marketing in one UI."
+      ],
+      "tradeoffs": [
+        "marketplace smaller than HubSpot/Salesforce."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk"
+      ],
+      "missing_metrics": [],
+      "name": "monday sales CRM",
+      "notes": [
+        "Strengths: highly visual, easy to adopt for cross-functional teams.",
+        "Trade-offs: automation and integrations capped by plan tier."
+      ],
+      "rank": 7,
+      "score": 73.2,
+      "slug": "monday_sales_crm",
+      "strengths": [
+        "highly visual, easy to adopt for cross-functional teams."
+      ],
+      "tradeoffs": [
+        "automation and integrations capped by plan tier."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 4.0,
+          "weight": 12.0,
+          "weighted": 9.6
+        },
+        "marketing": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "service": {
+          "raw": 5.0,
+          "weight": 7.0,
+          "weighted": 7.0
+        },
+        "support_ecosystem_viability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "phone_integration"
+      ],
+      "missing_metrics": [],
+      "name": "Zendesk Sell",
+      "notes": [
+        "Strengths: seamless with Zendesk customer service stack.",
+        "Trade-offs: marketing automation limited; best for service-heavy orgs."
+      ],
+      "rank": 8,
+      "score": 71.8,
+      "slug": "zendesk_sell",
+      "strengths": [
+        "seamless with Zendesk customer service stack."
+      ],
+      "tradeoffs": [
+        "marketing automation limited; best for service-heavy orgs."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 5.0,
+          "weight": 15.0,
+          "weighted": 15.0
+        },
+        "security_compliance": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "service": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 5.0,
+          "weight": 10.0,
+          "weighted": 10.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "deal_rotting_alerts"
+      ],
+      "missing_metrics": [],
+      "name": "Pipedrive",
+      "notes": [
+        "Strengths: pipeline-focused UX ideal for sales teams.",
+        "Trade-offs: limited native marketing/service functions."
+      ],
+      "rank": 9,
+      "score": 69.0,
+      "slug": "pipedrive",
+      "strengths": [
+        "pipeline-focused UX ideal for sales teams."
+      ],
+      "tradeoffs": [
+        "limited native marketing/service functions."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "service": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "project_management"
+      ],
+      "missing_metrics": [],
+      "name": "Insightly",
+      "notes": [
+        "Strengths: bridges CRM and project delivery for services orgs.",
+        "Trade-offs: ecosystem smaller than leading suites; advanced automations require higher tiers."
+      ],
+      "rank": 10,
+      "score": 66.8,
+      "slug": "insightly",
+      "strengths": [
+        "bridges CRM and project delivery for services orgs."
+      ],
+      "tradeoffs": [
+        "ecosystem smaller than leading suites; advanced automations require higher tiers."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 5.0,
+          "weight": 7.0,
+          "weighted": 7.0
+        },
+        "pricing_tco": {
+          "raw": 3.0,
+          "weight": 9.0,
+          "weighted": 5.4
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "service": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "marketing_automation",
+        "payments"
+      ],
+      "missing_metrics": [],
+      "name": "Keap",
+      "notes": [
+        "Strengths: powerful automation and nurture flows tailored for small businesses.",
+        "Trade-offs: limited enterprise controls; contact-based pricing can scale costs."
+      ],
+      "rank": 11,
+      "score": 66.4,
+      "slug": "keap",
+      "strengths": [
+        "powerful automation and nurture flows tailored for small businesses."
+      ],
+      "tradeoffs": [
+        "limited enterprise controls; contact-based pricing can scale costs."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "service": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "google_workspace_native"
+      ],
+      "missing_metrics": [],
+      "name": "Copper CRM",
+      "notes": [
+        "Strengths: deeply integrated with Google Workspace; fast adoption.",
+        "Trade-offs: limited service modules and lighter automations versus larger suites."
+      ],
+      "rank": 12,
+      "score": 64.0,
+      "slug": "copper",
+      "strengths": [
+        "deeply integrated with Google Workspace; fast adoption."
+      ],
+      "tradeoffs": [
+        "limited service modules and lighter automations versus larger suites."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 2.0,
+          "weight": 10.0,
+          "weighted": 4.0
+        },
+        "customization_extensibility": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        },
+        "data_migration_portability": {
+          "raw": 4.0,
+          "weight": 5.0,
+          "weighted": 4.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 2.0,
+          "weight": 10.0,
+          "weighted": 4.0
+        },
+        "service": {
+          "raw": 4.0,
+          "weight": 7.0,
+          "weighted": 5.6
+        },
+        "support_ecosystem_viability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "usability_admin": {
+          "raw": 2.0,
+          "weight": 10.0,
+          "weighted": 4.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "helpdesk",
+        "open_source"
+      ],
+      "missing_metrics": [],
+      "name": "SuiteCRM",
+      "notes": [
+        "Strengths: open source flexibility with no per-user licensing.",
+        "Trade-offs: UI and admin UX lag modern SaaS; security posture depends on hosting."
+      ],
+      "rank": 13,
+      "score": 63.2,
+      "slug": "suitecrm",
+      "strengths": [
+        "open source flexibility with no per-user licensing."
+      ],
+      "tradeoffs": [
+        "UI and admin UX lag modern SaaS; security posture depends on hosting."
+      ]
+    },
+    {
+      "breakdown": {
+        "analytics_ai": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "customization_extensibility": {
+          "raw": 3.0,
+          "weight": 10.0,
+          "weighted": 6.0
+        },
+        "data_migration_portability": {
+          "raw": 3.0,
+          "weight": 5.0,
+          "weighted": 3.0
+        },
+        "integrations_apis": {
+          "raw": 3.0,
+          "weight": 12.0,
+          "weighted": 7.2
+        },
+        "marketing": {
+          "raw": 3.0,
+          "weight": 7.0,
+          "weighted": 4.2
+        },
+        "pricing_tco": {
+          "raw": 4.0,
+          "weight": 9.0,
+          "weighted": 7.2
+        },
+        "sales_core": {
+          "raw": 4.0,
+          "weight": 15.0,
+          "weighted": 12.0
+        },
+        "security_compliance": {
+          "raw": 2.0,
+          "weight": 10.0,
+          "weighted": 4.0
+        },
+        "service": {
+          "raw": 2.0,
+          "weight": 7.0,
+          "weighted": 2.8
+        },
+        "support_ecosystem_viability": {
+          "raw": 2.0,
+          "weight": 5.0,
+          "weighted": 2.0
+        },
+        "usability_admin": {
+          "raw": 4.0,
+          "weight": 10.0,
+          "weighted": 8.0
+        }
+      },
+      "capabilities": [
+        "email_calendar_sync",
+        "basic_automation",
+        "sales_playbooks"
+      ],
+      "missing_metrics": [],
+      "name": "Nutshell",
+      "notes": [
+        "Strengths: easy-to-use pipeline management for SMB teams.",
+        "Trade-offs: lighter compliance controls and ecosystem."
+      ],
+      "rank": 14,
+      "score": 62.4,
+      "slug": "nutshell",
+      "strengths": [
+        "easy-to-use pipeline management for SMB teams."
+      ],
+      "tradeoffs": [
+        "lighter compliance controls and ecosystem."
+      ]
+    }
+  ],
+  "weights": {
+    "analytics_ai": 10,
+    "customization_extensibility": 10,
+    "data_migration_portability": 5,
+    "integrations_apis": 12,
+    "marketing": 7,
+    "pricing_tco": 9,
+    "sales_core": 15,
+    "security_compliance": 10,
+    "service": 7,
+    "support_ecosystem_viability": 5,
+    "usability_admin": 10
+  }
+}

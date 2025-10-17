@@ -112,6 +112,9 @@ async function startApp() {
   try {
     // Load fixture data first
     htiData = await loadBootstrapFixture();
+    if (typeof window !== 'undefined') {
+      window.__HTI_BOOTSTRAP_FIXTURE__ = JSON.parse(JSON.stringify(htiData));
+    }
 
     // Initialize state with loaded data
     state = State.createDefaultState(htiData, DEFAULT_SETTINGS);
@@ -137,7 +140,19 @@ async function startApp() {
 }
 
 async function bootstrapData() {
-  await Api.bootstrapData(state, apiAvailable, DEFAULT_SETTINGS, uiState, renderAll, populatePersonaFilter);
+  const result = await Api.bootstrapData(
+    state,
+    apiAvailable,
+    storageAvailable,
+    DEFAULT_SETTINGS,
+    uiState,
+    renderAll,
+    populatePersonaFilter,
+    htiData
+  );
+  if (result?.state) {
+    state = result.state;
+  }
 }
 
 function initializeApp() {

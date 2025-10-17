@@ -11,23 +11,24 @@ import {
 
 // Load state from localStorage
 export function loadState(apiAvailable, storageAvailable, htiData, DEFAULT_SETTINGS) {
-  if (apiAvailable) return null;
+  if (apiAvailable || storageAvailable === false) return null;
+  const dataset = normalizeDataset(htiData);
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
-    const leads = Array.isArray(parsed.leads) ? parsed.leads : clone(htiData.sampleLeads);
+    const leads = Array.isArray(parsed.leads) ? parsed.leads : clone(dataset.sampleLeads);
     leads.forEach(assignPersonaMetadata);
     const personaBreakdown = buildPersonaBreakdown(leads);
     const topPersonaEntry = getTopPersona(personaBreakdown);
 
     return {
       leads,
-      corporateTargets: Array.isArray(parsed.corporateTargets) ? parsed.corporateTargets : clone(htiData.corporateTargets),
-      grantMilestones: Array.isArray(parsed.grantMilestones) ? parsed.grantMilestones : clone(htiData.grantMilestones),
-      grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? parsed.dashboard?.grantMetrics ?? htiData.grantMetrics),
-      activities: Array.isArray(parsed.activities) ? parsed.activities : clone(htiData.activities),
+      corporateTargets: Array.isArray(parsed.corporateTargets) ? parsed.corporateTargets : clone(dataset.corporateTargets),
+      grantMilestones: Array.isArray(parsed.grantMilestones) ? parsed.grantMilestones : clone(dataset.grantMilestones),
+      grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? parsed.dashboard?.grantMetrics ?? dataset.grantMetrics),
+      activities: Array.isArray(parsed.activities) ? parsed.activities : clone(dataset.activities),
       syncLog: Array.isArray(parsed.syncLog) ? parsed.syncLog : [],
       entities: Array.isArray(parsed.entities) ? parsed.entities : [],
       pipelines: Array.isArray(parsed.pipelines) ? parsed.pipelines : [],
@@ -42,8 +43,8 @@ export function loadState(apiAvailable, storageAvailable, htiData, DEFAULT_SETTI
       interactions: Array.isArray(parsed.interactions) ? parsed.interactions : [],
       mapPoints: Array.isArray(parsed.mapPoints) ? parsed.mapPoints : [],
       analytics: {
-        baselineActiveLead: parsed.analytics?.baselineActiveLead ?? htiData.analytics.baselineActiveLead,
-        baselineEquipment: parsed.analytics?.baselineEquipment ?? htiData.analytics.baselineEquipment,
+        baselineActiveLead: parsed.analytics?.baselineActiveLead ?? dataset.analytics.baselineActiveLead,
+        baselineEquipment: parsed.analytics?.baselineEquipment ?? dataset.analytics.baselineEquipment,
         personaBreakdown,
         topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null,
         lastUpdatedAt: parsed.analytics?.lastUpdatedAt ?? new Date().toISOString()
@@ -53,13 +54,13 @@ export function loadState(apiAvailable, storageAvailable, htiData, DEFAULT_SETTI
       dashboard: parsed.dashboard
         ? {
             ...parsed.dashboard,
-            grantMetrics: normalizeGrantMetrics(parsed.dashboard.grantMetrics ?? parsed.grantMetrics ?? htiData.grantMetrics)
+            grantMetrics: normalizeGrantMetrics(parsed.dashboard.grantMetrics ?? parsed.grantMetrics ?? dataset.grantMetrics)
           }
         : {
             metrics: {},
             personaBreakdown,
             topPersona: topPersonaEntry ? { name: topPersonaEntry[0], count: topPersonaEntry[1] } : null,
-            grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? htiData.grantMetrics)
+            grantMetrics: normalizeGrantMetrics(parsed.grantMetrics ?? dataset.grantMetrics)
           }
     };
   } catch (error) {
@@ -70,10 +71,11 @@ export function loadState(apiAvailable, storageAvailable, htiData, DEFAULT_SETTI
 
 // Create default state with sample data
 export function createDefaultState(htiData, DEFAULT_SETTINGS) {
-  const initialLeads = clone(htiData.sampleLeads).map((lead) => assignPersonaMetadata({ ...lead }));
+  const dataset = normalizeDataset(htiData);
+  const initialLeads = clone(dataset.sampleLeads).map((lead) => assignPersonaMetadata({ ...lead }));
   const personaBreakdown = buildPersonaBreakdown(initialLeads);
-  const sampleMilestones = clone(htiData.grantMilestones);
-  const grantMetrics = normalizeGrantMetrics(htiData.grantMetrics);
+  const sampleMilestones = clone(dataset.grantMilestones);
+  const grantMetrics = normalizeGrantMetrics(dataset.grantMetrics);
   const grantProgressPercent = sampleMilestones.length
     ? Math.round(
         sampleMilestones.reduce((score, milestone) => {
@@ -85,12 +87,12 @@ export function createDefaultState(htiData, DEFAULT_SETTINGS) {
     : 0;
   return {
     leads: initialLeads,
-    corporateTargets: clone(htiData.corporateTargets),
-    grantMilestones: clone(htiData.grantMilestones),
+    corporateTargets: clone(dataset.corporateTargets),
+    grantMilestones: clone(dataset.grantMilestones),
     grantMetrics,
-    activities: clone(htiData.activities),
+    activities: clone(dataset.activities),
     syncLog: [],
-    entities: buildSampleEntities(htiData),
+    entities: buildSampleEntities(dataset),
     pipelines: [],
     automations: [],
     tasks: [],
@@ -100,11 +102,11 @@ export function createDefaultState(htiData, DEFAULT_SETTINGS) {
     apiKeys: [],
     audit: [],
     dedupeMatches: [],
-    interactions: buildSampleInteractions(htiData),
+    interactions: buildSampleInteractions(dataset),
     mapPoints: [],
     analytics: {
-      baselineActiveLead: htiData.analytics.baselineActiveLead,
-      baselineEquipment: htiData.analytics.baselineEquipment,
+      baselineActiveLead: dataset.analytics.baselineActiveLead,
+      baselineEquipment: dataset.analytics.baselineEquipment,
       personaBreakdown,
       forecastEquipment: 0,
       avgStageDuration: 0,
@@ -177,6 +179,21 @@ function buildSampleInteractions(htiData) {
           : `Email thread with ${lead.contact || lead.company} regarding data wipe.`
       };
     });
+}
+
+function normalizeDataset(htiData) {
+  const data = htiData && typeof htiData === 'object' ? htiData : {};
+  return {
+    corporateTargets: Array.isArray(data.corporateTargets) ? data.corporateTargets : [],
+    sampleLeads: Array.isArray(data.sampleLeads) ? data.sampleLeads : [],
+    grantMilestones: Array.isArray(data.grantMilestones) ? data.grantMilestones : [],
+    grantMetrics: data.grantMetrics && typeof data.grantMetrics === 'object' ? data.grantMetrics : {},
+    activities: Array.isArray(data.activities) ? data.activities : [],
+    analytics: {
+      baselineActiveLead: data.analytics?.baselineActiveLead ?? 0,
+      baselineEquipment: data.analytics?.baselineEquipment ?? 0
+    }
+  };
 }
 
 // Persist state to localStorage

@@ -1,0 +1,360 @@
+{
+  "leads": [],
+  "corporateTargets": [],
+  "grantMilestones": [],
+  "grantMetrics": {
+    "digitalLiteracyHours": {
+      "required": 170,
+      "completed": 0,
+      "updatedAt": null
+    }
+  },
+  "activities": [
+    {
+      "id": "A100322606",
+      "timestamp": "2025-10-17T19:51:05.649Z",
+      "text": "Automation scheduled follow-up task \"Call Blue Harbor Health Alliance about 300 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:51:05.649Z"
+    },
+    {
+      "id": "A185898811",
+      "timestamp": "2025-10-17T19:51:05.636Z",
+      "text": "Automation scheduled follow-up task \"Call OptiCore Analytics about 600 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:51:05.636Z"
+    },
+    {
+      "id": "A159579628",
+      "timestamp": "2025-10-17T19:47:49.710Z",
+      "text": "Automation scheduled follow-up task \"Call Blue Harbor Health Alliance about 300 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:47:49.710Z"
+    },
+    {
+      "id": "A468534314",
+      "timestamp": "2025-10-17T19:47:49.679Z",
+      "text": "Automation scheduled follow-up task \"Call OptiCore Analytics about 600 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:47:49.679Z"
+    },
+    {
+      "id": "A517168569",
+      "timestamp": "2025-10-17T19:19:11.551Z",
+      "text": "Automation scheduled follow-up task \"Call Blue Harbor Health Alliance about 300 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:19:11.551Z"
+    },
+    {
+      "id": "A129538923",
+      "timestamp": "2025-10-17T19:19:11.536Z",
+      "text": "Automation scheduled follow-up task \"Call OptiCore Analytics about 600 devices\" (due 2025-10-19).",
+      "type": "automation",
+      "createdAt": "2025-10-17T19:19:11.536Z"
+    }
+  ],
+  "syncLog": [],
+  "ingestCursor": {},
+  "contacts": [
+    {
+      "id": "06ea1a43-f76c-4ff3-b620-756922a41919",
+      "firstName": "",
+      "lastName": "Opticore Analytics",
+      "displayName": "OptiCore Analytics",
+      "title": null,
+      "normalizedName": "opticore-analytics-opticore-analytics",
+      "emails": [],
+      "phones": [],
+      "mobile": null,
+      "linkedin": null,
+      "householdId": null,
+      "organizationId": "68080243-89a2-4b7a-8a76-75bb35b2b2a0",
+      "leadIds": [
+        "AUTO-PRIORITY-1"
+      ],
+      "sources": [
+        "Corporate Refresh Monitor"
+      ],
+      "tags": [],
+      "workspaceId": null,
+      "status": "Active",
+      "notes": "",
+      "createdAt": "2025-10-17T19:19:11.532Z",
+      "updatedAt": "2025-10-17T19:51:05.634Z"
+    },
+    {
+      "id": "4d491592-4f98-4be9-91c4-624c30b3c559",
+      "firstName": "",
+      "lastName": "Blue Harbor Health Alliance",
+      "displayName": "Blue Harbor Health Alliance",
+      "title": null,
+      "normalizedName": "blue-harbor-health-alliance-blue-harbor-health-alliance",
+      "emails": [],
+      "phones": [],
+      "mobile": null,
+      "linkedin": null,
+      "householdId": null,
+      "organizationId": "da0b178c-fd64-49e2-96d3-6f924a73f93d",
+      "leadIds": [
+        "AUTO-OWNER-1"
+      ],
+      "sources": [
+        "Corporate Refresh Monitor"
+      ],
+      "tags": [],
+      "workspaceId": null,
+      "status": "Active",
+      "notes": "",
+      "createdAt": "2025-10-17T19:19:11.548Z",
+      "updatedAt": "2025-10-17T19:51:05.647Z"
+    }
+  ],
+  "organizations": [
+    {
+      "id": "68080243-89a2-4b7a-8a76-75bb35b2b2a0",
+      "name": "OptiCore Analytics",
+      "normalizedName": "opticore-analytics",
+      "legalName": null,
+      "type": "Company",
+      "website": null,
+      "industry": null,
+      "territory": null,
+      "address": null,
+      "focusAreas": [],
+      "givingCapacity": null,
+      "metrics": {},
+      "tags": [],
+      "source": "manual",
+      "workspaceId": null,
+      "createdAt": "2025-10-17T19:19:11.532Z",
+      "updatedAt": "2025-10-17T19:51:05.634Z",
+      "leadIds": [
+        "AUTO-PRIORITY-1"
+      ]
+    },
+    {
+      "id": "da0b178c-fd64-49e2-96d3-6f924a73f93d",
+      "name": "Blue Harbor Health Alliance",
+      "normalizedName": "blue-harbor-health-alliance",
+      "legalName": null,
+      "type": "Company",
+      "website": null,
+      "industry": null,
+      "territory": null,
+      "address": null,
+      "focusAreas": [],
+      "givingCapacity": null,
+      "metrics": {},
+      "tags": [],
+      "source": "manual",
+      "workspaceId": null,
+      "createdAt": "2025-10-17T19:19:11.548Z",
+      "updatedAt": "2025-10-17T19:51:05.647Z",
+      "leadIds": [
+        "AUTO-OWNER-1"
+      ]
+    }
+  ],
+  "households": [],
+  "pipelines": [],
+  "pipelineStages": [],
+  "leadAssignments": [
+    {
+      "id": "cee3e8ea-b6ea-4bac-993f-b74450eaf2ef",
+      "leadId": "AUTO-PRIORITY-1",
+      "entityType": "contact",
+      "entityId": "06ea1a43-f76c-4ff3-b620-756922a41919",
+      "metadata": null,
+      "createdAt": "2025-10-17T19:19:11.534Z",
+      "updatedAt": "2025-10-17T19:51:05.635Z"
+    },
+    {
+      "id": "0fe072bf-f8dc-4c1e-b4a4-57e7d1aab1e0",
+      "leadId": "AUTO-PRIORITY-1",
+      "entityType": "organization",
+      "entityId": "68080243-89a2-4b7a-8a76-75bb35b2b2a0",
+      "metadata": null,
+      "createdAt": "2025-10-17T19:19:11.534Z",
+      "updatedAt": "2025-10-17T19:51:05.635Z"
+    },
+    {
+      "id": "9010cef1-6b97-42cd-b30d-3759c09374f8",
+      "leadId": "AUTO-OWNER-1",
+      "entityType": "contact",
+      "entityId": "4d491592-4f98-4be9-91c4-624c30b3c559",
+      "metadata": null,
+      "createdAt": "2025-10-17T19:19:11.549Z",
+      "updatedAt": "2025-10-17T19:51:05.648Z"
+    },
+    {
+      "id": "d040ade3-6668-49c4-8b32-14e89b4474cc",
+      "leadId": "AUTO-OWNER-1",
+      "entityType": "organization",
+      "entityId": "da0b178c-fd64-49e2-96d3-6f924a73f93d",
+      "metadata": null,
+      "createdAt": "2025-10-17T19:19:11.550Z",
+      "updatedAt": "2025-10-17T19:51:05.648Z"
+    }
+  ],
+  "automations": [],
+  "automationExecutions": [],
+  "workspaces": [],
+  "users": [],
+  "auditLog": [
+    {
+      "id": "51b66da0-3bc3-4970-bd1e-ef9645bf63de",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "8c7f5212-113f-4c67-8204-fd080a46fbbf",
+      "after": {
+        "title": "Call Blue Harbor Health Alliance about 300 devices"
+      },
+      "createdAt": "2025-10-17T19:51:05.649Z"
+    },
+    {
+      "id": "dfe207e0-017b-4bcf-b621-2599d43e19fe",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "8f819c67-e5c3-4742-9fb2-f25b21612ee9",
+      "after": {
+        "title": "Call OptiCore Analytics about 600 devices"
+      },
+      "createdAt": "2025-10-17T19:51:05.636Z"
+    },
+    {
+      "id": "2e2e8a5e-6e0b-4d8b-9697-a724e4c4d165",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "d1b4a486-5f41-4148-a4c1-d561d17949ba",
+      "after": {
+        "title": "Call Blue Harbor Health Alliance about 300 devices"
+      },
+      "createdAt": "2025-10-17T19:47:49.709Z"
+    },
+    {
+      "id": "7b878800-a558-4eb8-94f8-642b80ae174d",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "0ff8385e-e649-4868-a6f7-9958199e2f68",
+      "after": {
+        "title": "Call OptiCore Analytics about 600 devices"
+      },
+      "createdAt": "2025-10-17T19:47:49.677Z"
+    },
+    {
+      "id": "09919195-3f3f-4a11-969d-1095a6d80a9c",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "0eb8aca7-73c4-42bb-a99a-a45e723a6a7e",
+      "after": {
+        "title": "Call Blue Harbor Health Alliance about 300 devices"
+      },
+      "createdAt": "2025-10-17T19:19:11.551Z"
+    },
+    {
+      "id": "c032d57e-41d7-4281-b82b-cef933377251",
+      "actorId": "system",
+      "action": "contact.created",
+      "entityType": "contact",
+      "entityId": "4d491592-4f98-4be9-91c4-624c30b3c559",
+      "after": {
+        "displayName": "Blue Harbor Health Alliance"
+      },
+      "createdAt": "2025-10-17T19:19:11.549Z"
+    },
+    {
+      "id": "8e0af971-7377-45f7-afd7-2f7d96c5f578",
+      "actorId": "system",
+      "action": "organization.created",
+      "entityType": "organization",
+      "entityId": "da0b178c-fd64-49e2-96d3-6f924a73f93d",
+      "after": {
+        "name": "Blue Harbor Health Alliance"
+      },
+      "createdAt": "2025-10-17T19:19:11.548Z"
+    },
+    {
+      "id": "cfbfed01-8bbd-4fc9-9093-306c877eab77",
+      "actorId": "system",
+      "action": "task.created",
+      "entityType": "task",
+      "entityId": "aa17792b-c377-4896-be2f-b76f778b1a87",
+      "after": {
+        "title": "Call OptiCore Analytics about 600 devices"
+      },
+      "createdAt": "2025-10-17T19:19:11.535Z"
+    },
+    {
+      "id": "8694bccc-a09d-4a7a-b389-74a3989a5430",
+      "actorId": "system",
+      "action": "contact.created",
+      "entityType": "contact",
+      "entityId": "06ea1a43-f76c-4ff3-b620-756922a41919",
+      "after": {
+        "displayName": "OptiCore Analytics"
+      },
+      "createdAt": "2025-10-17T19:19:11.533Z"
+    },
+    {
+      "id": "1fb5b991-04b1-49dd-93ee-f78679f4977f",
+      "actorId": "system",
+      "action": "organization.created",
+      "entityType": "organization",
+      "entityId": "68080243-89a2-4b7a-8a76-75bb35b2b2a0",
+      "after": {
+        "name": "OptiCore Analytics"
+      },
+      "createdAt": "2025-10-17T19:19:11.532Z"
+    }
+  ],
+  "ingestionJobs": [],
+  "apiKeys": [],
+  "intakeForms": [],
+  "connectors": [],
+  "interactionEvents": [],
+  "calendarEvents": [],
+  "tasks": [],
+  "notificationLog": [
+    {
+      "id": "mgv9ksky",
+      "timestamp": "2025-10-17T19:51:05.650Z",
+      "channel": "summary",
+      "message": "*New Healthcare System lead:* Blue Harbor Health Alliance\nSource: Corporate Refresh Monitor\nQuantity: 300 (Mixed equipment)\nPriority: High\nTimeline: TBD",
+      "leadId": "AUTO-OWNER-1"
+    }
+  ],
+  "settings": {
+    "personas": {
+      "enabled": {
+        "Corporate IT Partner": true,
+        "Tech Refresh Donor": true,
+        "Government Surplus": true,
+        "Government Procurement": true,
+        "Healthcare System": true,
+        "Education Partner": true,
+        "Logistics Hotshot": true
+      },
+      "weights": {
+        "Corporate IT Partner": 1,
+        "Tech Refresh Donor": 1,
+        "Government Surplus": 1,
+        "Government Procurement": 1,
+        "Healthcare System": 1,
+        "Education Partner": 1,
+        "Logistics Hotshot": 1
+      }
+    },
+    "assignment": {
+      "defaultOwnerId": "hti-outreach"
+    },
+    "preferences": {
+      "enableMap": true,
+      "enableAutomations": true
+    }
+  }
+}
