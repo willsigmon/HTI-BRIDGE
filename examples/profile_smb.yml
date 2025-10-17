@@ -1,8 +1,0 @@
-{
-  "company_size": "10-50",
-  "must_have": ["email_calendar_sync", "basic_automation"],
-  "nice_to_have": ["helpdesk", "predictive_scoring"],
-  "budget_per_user_per_month": 30,
-  "regions": ["US"],
-  "industry": "services"
-}
