@@ -1,0 +1,656 @@
+/**
+ * BRIDGE CRM - Lead Swipe Interface Styles
+ * Mobile-first, touch-optimized design
+ */
+
+.lead-swipe-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Progress Bar */
+.swipe-progress {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.swipe-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB, #10B981);
+  transition: width 0.3s ease-out;
+  border-radius: 4px;
+}
+
+.swipe-progress-text {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+/* Card Wrapper */
+.swipe-card-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  touch-action: none;
+}
+
+/* Swipe Card */
+.swipe-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.swipe-card:active {
+  cursor: grabbing;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Company Header */
+.swipe-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.company-logo {
+  flex-shrink: 0;
+}
+
+.company-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #2563EB, #10B981);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.company-info {
+  flex: 1;
+}
+
+.company-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.company-location {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 4px 0;
+}
+
+.company-distance {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+/* Match Score */
+.match-score {
+  background: #10B981;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.match-stars {
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.match-percent {
+  font-size: 16px;
+}
+
+/* Lead Stats */
+.lead-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  background: #F9FAFB;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Match Reasons */
+.match-reasons {
+  margin-bottom: 24px;
+}
+
+.match-reasons h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.reasons-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reasons-list li {
+  padding: 10px 12px;
+  background: #F0FDF4;
+  border-left: 3px solid #10B981;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #065F46;
+  line-height: 1.5;
+}
+
+/* Company Details */
+.company-details {
+  background: #F9FAFB;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 600;
+}
+
+.priority-critical {
+  color: #DC2626;
+}
+
+.priority-high {
+  color: #F59E0B;
+}
+
+.priority-medium {
+  color: #3B82F6;
+}
+
+.priority-low {
+  color: #6B7280;
+}
+
+/* Contact Info */
+.contact-info {
+  margin-top: 16px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #EFF6FF;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1E40AF;
+}
+
+.contact-icon {
+  font-size: 16px;
+}
+
+/* Swipe Indicators */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.swipe-indicator.swipe-left {
+  left: 20px;
+}
+
+.swipe-indicator.swipe-right {
+  right: 20px;
+}
+
+.swipe-indicator.swipe-up {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.swipe-indicator.swipe-down {
+  bottom: 20px;
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.indicator-content {
+  background: white;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.indicator-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.indicator-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Action Buttons */
+.swipe-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.swipe-btn {
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  font-family: inherit;
+}
+
+.swipe-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.swipe-btn:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 24px;
+}
+
+.btn-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.swipe-btn-pass {
+  border-color: #FCA5A5;
+}
+
+.swipe-btn-pass:hover {
+  background: #FEF2F2;
+  border-color: #EF4444;
+}
+
+.swipe-btn-maybe {
+  border-color: #FCD34D;
+}
+
+.swipe-btn-maybe:hover {
+  background: #FFFBEB;
+  border-color: #F59E0B;
+}
+
+.swipe-btn-contact {
+  border-color: #6EE7B7;
+}
+
+.swipe-btn-contact:hover {
+  background: #ECFDF5;
+  border-color: #10B981;
+}
+
+.swipe-btn-priority {
+  border-color: #93C5FD;
+}
+
+.swipe-btn-priority:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}
+
+/* Undo Button */
+.undo-btn {
+  background: #F3F4F6;
+  border: 2px solid #D1D5DB;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  font-family: inherit;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.undo-btn:hover {
+  background: #E5E7EB;
+  border-color: #9CA3AF;
+}
+
+/* Keyboard Hints */
+.keyboard-hints {
+  text-align: center;
+  font-size: 12px;
+  color: #9CA3AF;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+/* Completion Screen */
+.swipe-complete {
+  text-align: center;
+  padding: 40px 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.complete-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+}
+
+.swipe-complete h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.swipe-complete p {
+  font-size: 16px;
+  color: #6B7280;
+  margin: 0 0 32px 0;
+}
+
+.review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.review-stat {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.review-stat .stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.review-stat .stat-label {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563EB, #10B981);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  color: #111827;
+  border: 2px solid #E5E7EB;
+}
+
+.btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .lead-swipe-container {
+    padding: 16px;
+  }
+  
+  .swipe-card {
+    padding: 20px;
+  }
+  
+  .company-name {
+    font-size: 20px;
+  }
+  
+  .lead-stats {
+    gap: 8px;
+  }
+  
+  .stat-item {
+    padding: 12px 8px;
+  }
+  
+  .stat-icon {
+    font-size: 20px;
+  }
+  
+  .stat-value {
+    font-size: 18px;
+  }
+  
+  .swipe-actions {
+    gap: 8px;
+  }
+  
+  .swipe-btn {
+    padding: 12px 6px;
+  }
+  
+  .btn-icon {
+    font-size: 20px;
+  }
+  
+  .btn-label {
+    font-size: 11px;
+  }
+  
+  .keyboard-hints {
+    display: none; /* Hide on mobile */
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .lead-swipe-container {
+    padding: 24px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .swipe-card {
+    max-width: 550px;
+  }
+  
+  .swipe-actions {
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .swipe-card {
+    background: #1F2937;
+  }
+  
+  .company-name,
+  .detail-value,
+  .stat-value {
+    color: #F9FAFB;
+  }
+  
+  .company-location,
+  .company-distance,
+  .detail-label,
+  .stat-label {
+    color: #9CA3AF;
+  }
+  
+  .company-details,
+  .stat-item {
+    background: #111827;
+  }
+  
+  .detail-row {
+    border-bottom-color: #374151;
+  }
+  
+  .swipe-btn {
+    background: #1F2937;
+    border-color: #374151;
+  }
+  
+  .btn-label {
+    color: #F9FAFB;
+  }
+  
+  .keyboard-hints {
+    background: #111827;
+    color: #6B7280;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .swipe-card,
+  .swipe-btn,
+  .btn-primary,
+  .btn-secondary {
+    transition: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .swipe-card {
+    border: 2px solid #111827;
+  }
+  
+  .swipe-btn {
+    border-width: 3px;
+  }
+}
+
